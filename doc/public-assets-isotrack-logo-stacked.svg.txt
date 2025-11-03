@@ -1,0 +1,10 @@
+<svg viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <g transform="translate(0,0)">
+    <!-- Icono -->
+    <use href="/assets/isotrack-icon.svg#icon" class="fill-primary" />
+  </g>
+  <g transform="translate(0,280)">
+    <!-- Texto -->
+    <text class="font-bold text-4xl fill-current text-ink" x="50%" text-anchor="middle">IsoTrack</text>
+  </g>
+</svg>
