@@ -1,16 +1,33 @@
 ---
-
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProtectedIsland from '../components/auth/ProtectedIsland';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout>
+  <ProtectedIsland client:load>
+    <section class="space-y-6">
+      <h1 class="text-2xl font-semibold text-slate-900">Bienvenido a ISOTrack</h1>
+      <p class="max-w-2xl text-sm text-slate-600">
+        Este dashboard centraliza el seguimiento de normas ISO y los documentos clave de tu organización. Desde aquí podrás ver
+        el estado general de cumplimiento y acceder rápidamente a las acciones pendientes.
+      </p>
+      <div class="grid gap-4 md:grid-cols-2">
+        <article class="rounded-lg border border-slate-200 p-4">
+          <h2 class="text-lg font-medium text-slate-800">Próximos pasos</h2>
+          <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
+            <li>Revisa los documentos recientes cargados por tu equipo.</li>
+            <li>Valida los pendientes de auditoría interna.</li>
+            <li>Configura alertas de vencimiento por norma.</li>
+          </ul>
+        </article>
+        <article class="rounded-lg border border-slate-200 p-4">
+          <h2 class="text-lg font-medium text-slate-800">Integraciones</h2>
+          <p class="mt-2 text-sm text-slate-600">
+            La app ya está conectada al backend FastAPI. A medida que se habiliten nuevos módulos, verás aquí atajos directos para
+            gestionar hallazgos, planes de acción y calendarios de auditoría.
+          </p>
+        </article>
+      </div>
+    </section>
+  </ProtectedIsland>
+</BaseLayout>

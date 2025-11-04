@@ -1,43 +1,61 @@
-# Astro Starter Kit: Minimal
+# ISOTrack Frontend
 
-```sh
-pnpm create astro@latest -- --template minimal
+Interfaz inicial del MVP de ISOTrack construida con [Astro](https://astro.build/), React y TailwindCSS. Esta primera entrega cubre las fases 1.1 y 1.2 del plan: entorno base, conexión al backend FastAPI y flujo de login mediante Supabase Auth.
+
+## 🚀 Tecnologías
+
+- [Astro 5](https://docs.astro.build/) con islands React
+- [TailwindCSS](https://tailwindcss.com/) para estilos utilitarios
+- [Radix UI](https://www.radix-ui.com/primitives) para componentes accesibles (selector de empresa, labels)
+- FastAPI + Supabase Auth como backend (consumido mediante `fetch` tipado)
+
+## 📁 Estructura relevante
+
+```
+src/
+├── components/
+│   ├── auth/        # Contexto y helpers de autenticación
+│   ├── layout/      # Header y navegación lateral
+│   └── ui/          # Botones, inputs y labels reutilizables
+├── layouts/         # BaseLayout con provider global
+├── lib/             # Cliente HTTP, sesión y servicios
+├── pages/           # Rutas Astro (dashboard, login, documentos)
+└── styles/          # Tailwind global
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 🔐 Variables de entorno
 
-## 🚀 Project Structure
+Crea un archivo `.env` en la raíz con las variables públicas que consume Astro:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```
+PUBLIC_API_URL="https://tu-backend-fastapi"
+# Opcional: solo si se expone desde el front
+PUBLIC_SUPABASE_URL="https://tu-supabase-project"
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Astro expone las variables prefijadas con `PUBLIC_` al cliente. El valor por defecto del backend es `http://localhost:8000`.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Todos los comandos se ejecutan con [pnpm](https://pnpm.io/):
 
-Any static assets, like images, can be placed in the `public/` directory.
+| Comando       | Descripción                              |
+| ------------- | ---------------------------------------- |
+| `pnpm install`| Instala dependencias                     |
+| `pnpm dev`    | Inicia el servidor de desarrollo (4321)  |
+| `pnpm build`  | Genera la build de producción            |
+| `pnpm preview`| Previsualiza la build                    |
+| `pnpm lint`   | Ejecuta ESLint sobre archivos Astro/TSX  |
 
-## 🧞 Commands
+## 🔄 Flujo de autenticación
 
-All commands are run from the root of the project, from a terminal:
+1. `LoginForm` envía las credenciales a `/auth/login` (FastAPI).
+2. El `auth-service` persiste `access_token` y `refresh_token` en `localStorage`.
+3. `AuthProvider` carga perfil (`/me`) y empresas (`/companies`) para disponibilizarlo en toda la app.
+4. `ProtectedIsland` protege rutas privadas y redirige a `/login` si no hay sesión válida.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+Los tokens y la empresa activa se guardan en `localStorage` para mantener la sesión entre recargas.
 
-## 👀 Want to learn more?
+## ✅ Próximos pasos sugeridos
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Implementar refresco automático del token cuando `/me` responda 401.
+- Añadir tests de integración para los flujos críticos de login.
+- Completar páginas funcionales (documentos, auditorías, indicadores) consumiendo el backend real.
