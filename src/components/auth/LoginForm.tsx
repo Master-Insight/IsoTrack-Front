@@ -6,8 +6,8 @@ import { Label } from '../ui/Label';
 
 export const LoginForm = () => {
   const { login, isLoading, error } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('insightdev@isotrack.com');
+  const [password, setPassword] = useState('insight');
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,7 +45,9 @@ export const LoginForm = () => {
           required
         />
       </div>
-      {(error || formError) && <p className="text-sm text-red-600">{formError ?? error}</p>}
+      {(error || formError) && (
+        <p className="text-sm text-red-600">{formError ?? error}</p>
+      )}
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? 'Ingresando…' : 'Ingresar'}
       </Button>
