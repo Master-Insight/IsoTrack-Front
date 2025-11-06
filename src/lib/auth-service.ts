@@ -1,6 +1,18 @@
 import { apiFetch } from './api-client';
-import { clearCompanyId, clearTokens, getCompanyId, getTokens, setCompanyId, setTokens } from './session';
-import type { Company, LoginResponse, RefreshResponse, User } from '../types/auth';
+import {
+  clearCompanyId,
+  clearTokens,
+  getCompanyId,
+  getTokens,
+  setCompanyId,
+  setTokens,
+} from './session';
+import type {
+  Company,
+  LoginResponse,
+  RefreshResponse,
+  User,
+} from '../types/auth';
 
 interface LoginPayload {
   email: string;
@@ -13,13 +25,16 @@ export interface AuthSession {
 }
 
 export async function login(payload: LoginPayload): Promise<AuthSession> {
-  const response = await apiFetch<LoginResponse>('/auth/login', {
+  const response = await apiFetch<LoginResponse>('/users/login', {
     method: 'POST',
     body: JSON.stringify(payload),
     auth: false,
   });
 
-  setTokens({ accessToken: response.access_token, refreshToken: response.refresh_token });
+  setTokens({
+    accessToken: response.access_token,
+    refreshToken: response.refresh_token,
+  });
   if (response.companies?.length) {
     setCompanyId(response.companies[0].id);
   }
@@ -39,7 +54,10 @@ export async function refresh(): Promise<void> {
     auth: false,
   });
 
-  setTokens({ accessToken: response.access_token, refreshToken: response.refresh_token });
+  setTokens({
+    accessToken: response.access_token,
+    refreshToken: response.refresh_token,
+  });
 }
 
 export async function logout(): Promise<void> {
@@ -52,13 +70,17 @@ export async function logout(): Promise<void> {
 }
 
 export async function loadProfile(): Promise<AuthSession> {
-  const user = await apiFetch<User>('/me');
+  const user = await apiFetch<User>('/users/me');
   const companies = await apiFetch<Company[]>('/companies');
 
   if (companies?.length) {
     const storedCompany = getCompanyId();
     const fallbackCompany = companies[0].id;
-    const activeCompany = companies.some((company) => company.id === storedCompany) ? storedCompany : fallbackCompany;
+    const activeCompany = companies.some(
+      (company) => company.id === storedCompany,
+    )
+      ? storedCompany
+      : fallbackCompany;
     if (activeCompany) {
       setCompanyId(activeCompany);
     }
