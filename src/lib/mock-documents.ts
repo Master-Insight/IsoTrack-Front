@@ -1,12 +1,23 @@
 import type { DocumentRecord, DocumentVersion } from '../types/documents';
 
-const makeVersion = (version: string, updatedAt: string, updatedBy: string, notes: string, fileUrl: string): DocumentVersion => ({
-  id: `${version}-${updatedAt}`,
+const makeVersion = (
+  id: string,
+  version: string,
+  approved_at: string,
+  approved_by: string,
+  approved_by_name: string,
+  notes: string,
+  format: 'pdf' | 'video' | 'docx' | 'xlsx',
+  external_url: string,
+): DocumentVersion => ({
+  id,
   version,
-  updatedAt,
-  updatedBy,
+  approved_at,
+  approved_by,
+  approved_by_name,
   notes,
-  fileUrl,
+  format,
+  external_url,
 });
 
 export const mockDocuments: DocumentRecord[] = [
@@ -15,150 +26,177 @@ export const mockDocuments: DocumentRecord[] = [
     title: 'Manual de Calidad ISO 9001',
     code: 'MC-ISO9001',
     category: 'Gestión de Calidad',
+    owner_id: 'usr-001',
     owner: 'María González',
     status: 'vigente',
     tags: ['ISO 9001', 'Manual', 'Calidad'],
-    summary:
+    description:
       'Manual maestro con la política de calidad, responsabilidades y mapa de procesos de la organización conforme a la norma ISO 9001:2015.',
-    format: 'pdf',
     currentVersion: makeVersion(
+      'ver-0032',
       '3.2',
       '2024-02-12T09:00:00Z',
+      'usr-001',
       'María González',
       'Actualización de organigrama y responsabilidades del proceso comercial.',
+      'pdf',
       'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     ),
     versions: [
       makeVersion(
+        'ver-0100',
         '1.0',
         '2023-01-10T13:30:00Z',
+        'usr-001',
         'María González',
         'Liberación inicial del manual de calidad.',
+        'pdf',
         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       ),
       makeVersion(
+        'ver-0250',
         '2.5',
         '2023-08-22T11:15:00Z',
+        'usr-002',
         'Laura Suárez',
         'Se incorpora procedimiento de tratamiento de riesgos.',
+        'pdf',
         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       ),
       makeVersion(
+        'ver-0032',
         '3.2',
         '2024-02-12T09:00:00Z',
+        'usr-001',
         'María González',
         'Actualización de organigrama y responsabilidades del proceso comercial.',
+        'pdf',
         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       ),
     ],
     reads: [
       {
         id: 'read-1',
+        user_id: 'usr-010',
         user: 'Ana Gómez',
-        role: 'Responsable Calidad',
+        position: 'Responsable Calidad',
         readAt: '2024-02-15T14:20:00Z',
       },
       {
         id: 'read-2',
+        user_id: 'usr-011',
         user: 'Carlos López',
-        role: 'Gerente Planta',
+        position: 'Gerente Planta',
         readAt: '2024-02-17T09:45:00Z',
       },
     ],
-    complianceArea: 'Sistema de Gestión',
     createdAt: '2023-01-10T13:30:00Z',
     updatedAt: '2024-02-12T09:00:00Z',
     nextReviewAt: '2024-08-01T00:00:00Z',
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   },
   {
     id: 'DOC-SST-014',
     title: 'Procedimiento de Inducción SST',
     code: 'PR-SST-014',
     category: 'Seguridad y Salud',
+    owner_id: 'usr-003',
     owner: 'Jorge Salvatierra',
     status: 'en_revision',
     tags: ['SST', 'Capacitaciones'],
-    summary:
+    description:
       'Procedimiento obligatorio para la inducción de personal nuevo y contratistas en materia de seguridad y salud ocupacional.',
-    format: 'video',
     currentVersion: makeVersion(
+      'ver-021',
       '2.1',
       '2024-03-05T16:30:00Z',
+      'usr-003',
       'Jorge Salvatierra',
       'Se incorporan módulos interactivos y evaluación final.',
+      'video',
       'https://www.youtube.com/embed/dQw4w9WgXcQ',
     ),
     versions: [
       makeVersion(
+        'ver-010',
         '1.0',
         '2022-11-02T10:00:00Z',
+        'usr-003',
         'Jorge Salvatierra',
         'Liberación inicial del procedimiento de inducción.',
+        'video',
         'https://www.youtube.com/embed/dQw4w9WgXcQ',
       ),
       makeVersion(
+        'ver-021',
         '2.1',
         '2024-03-05T16:30:00Z',
+        'usr-003',
         'Jorge Salvatierra',
         'Se incorporan módulos interactivos y evaluación final.',
+        'video',
         'https://www.youtube.com/embed/dQw4w9WgXcQ',
       ),
     ],
     reads: [
       {
         id: 'read-3',
+        user_id: 'usr-020',
         user: 'Lucía Méndez',
-        role: 'Jefa SST',
+        position: 'Jefa SST',
         readAt: '2024-03-06T08:10:00Z',
       },
     ],
-    complianceArea: 'Seguridad y Salud Ocupacional',
     createdAt: '2022-11-02T10:00:00Z',
     updatedAt: '2024-03-05T16:30:00Z',
     nextReviewAt: '2024-06-30T00:00:00Z',
-    url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
   },
   {
     id: 'DOC-AMB-022',
     title: 'Instructivo de Manejo de Residuos Peligrosos',
     code: 'IN-AMB-022',
     category: 'Ambiental',
+    owner_id: 'usr-004',
     owner: 'Verónica Paredes',
     status: 'borrador',
     tags: ['Residuos', 'Ambiental'],
-    summary:
+    description:
       'Instructivo detallado para la segregación, almacenamiento y disposición de residuos peligrosos según ISO 14001.',
-    format: 'pdf',
     currentVersion: makeVersion(
+      'ver-008',
       '0.8',
       '2024-01-22T09:40:00Z',
+      'usr-004',
       'Verónica Paredes',
       'Pendiente de validación por parte de Seguridad Industrial.',
+      'pdf',
       'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     ),
     versions: [
       makeVersion(
+        'ver-005',
         '0.5',
         '2023-12-14T08:25:00Z',
+        'usr-004',
         'Verónica Paredes',
         'Primera versión interna para revisión.',
+        'pdf',
         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       ),
       makeVersion(
+        'ver-008',
         '0.8',
         '2024-01-22T09:40:00Z',
+        'usr-004',
         'Verónica Paredes',
         'Pendiente de validación por parte de Seguridad Industrial.',
+        'pdf',
         'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       ),
     ],
     reads: [],
-    complianceArea: 'Gestión Ambiental',
     createdAt: '2023-12-14T08:25:00Z',
     updatedAt: '2024-01-22T09:40:00Z',
     nextReviewAt: '2024-04-15T00:00:00Z',
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   },
 ];
 
@@ -166,6 +204,7 @@ export const getDocumentById = (id: string): DocumentRecord | undefined =>
   mockDocuments.find((document) => document.id === id);
 
 export const getDocumentCategories = () =>
-  Array.from(new Set(mockDocuments.map((document) => document.category))).sort();
+  Array.from(new Set(mockDocuments.map((d) => d.category))).sort();
 
-export const getDocumentStatuses = () => ['vigente', 'en_revision', 'borrador'] as const;
+export const getDocumentStatuses = () =>
+  ['vigente', 'en_revision', 'borrador'] as const;

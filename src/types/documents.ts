@@ -5,16 +5,19 @@ export type DocumentFormat = 'pdf' | 'video';
 export interface DocumentVersion {
   id: string;
   version: string;
-  updatedAt: string;
-  updatedBy: string;
+  approved_at: string;
+  approved_by: string;
+  approved_by_name: string;
   notes?: string;
-  fileUrl: string;
+  format: DocumentFormat;
+  external_url: string;
 }
 
 export interface DocumentRead {
   id: string;
+  user_id: string;
   user: string;
-  role: string;
+  position: string;
   readAt: string;
 }
 
@@ -23,18 +26,16 @@ export interface DocumentRecord {
   title: string;
   code: string;
   category: string;
+  owner_id: string;
   owner: string;
   status: DocumentStatus;
   tags: string[];
-  summary: string;
-  format: DocumentFormat;
+  description: string;
   coverImage?: string;
   currentVersion: DocumentVersion;
   versions: DocumentVersion[];
   reads: DocumentRead[];
-  complianceArea: string;
   createdAt: string;
   updatedAt: string;
   nextReviewAt?: string;
-  url: string;
 }
