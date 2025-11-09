@@ -11,6 +11,23 @@ export interface ApiErrorShape {
   details?: unknown;
 }
 
+interface ApiResponseEnvelope<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
+
+function isApiResponseEnvelope<T>(
+  value: unknown,
+): value is ApiResponseEnvelope<T> {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return 'success' in record && 'data' in record;
+}
+
 export class ApiError extends Error implements ApiErrorShape {
   status: number;
   details?: unknown;
@@ -23,7 +40,10 @@ export class ApiError extends Error implements ApiErrorShape {
   }
 }
 
-export async function apiFetch<TResponse>(path: string, options: ApiRequestOptions = {}): Promise<TResponse> {
+export async function apiFetch<TResponse>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<TResponse> {
   const { auth = true, headers, body, ...rest } = options;
   const url = `${API_BASE_URL}${path}`;
   const requestHeaders = new Headers(headers);
@@ -58,9 +78,14 @@ export async function apiFetch<TResponse>(path: string, options: ApiRequestOptio
       details = undefined;
     }
 
+    const detailMessage =
+      (details as { detail?: string })?.detail ??
+      (details as { message?: string })?.message ??
+      response.statusText;
+
     throw new ApiError({
       status: response.status,
-      message: (details as { detail?: string })?.detail ?? response.statusText,
+      message: detailMessage,
       details,
     });
   }
@@ -69,6 +94,19 @@ export async function apiFetch<TResponse>(path: string, options: ApiRequestOptio
     return undefined as TResponse;
   }
 
-  const data = (await response.json()) as TResponse;
-  return data;
+  const payload = (await response.json()) as unknown;
+
+  if (isApiResponseEnvelope<TResponse>(payload)) {
+    if (!payload.success) {
+      throw new ApiError({
+        status: response.status,
+        message: payload.message ?? 'Request failed',
+        details: payload,
+      });
+    }
+
+    return payload.data;
+  }
+
+  return payload as TResponse;
 }
