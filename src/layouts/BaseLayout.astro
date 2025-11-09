@@ -2,14 +2,7 @@
 import '../styles/global.css';
 import AppShell from '../components/layout/AppShell';
 
-interface Props {
-  requireAuth?: boolean;
-  fallback?: any;
-  component?: any;
-  componentProps?: Record<string, unknown>;
-  htmlLang?: string;
-  title?: string;
-}
+const props = Astro.props ?? {};
 
 const {
   requireAuth = true,
@@ -18,7 +11,7 @@ const {
   componentProps = {},
   htmlLang = 'es',
   title = 'IsoTrack',
-} = Astro.props as Props;
+} = props;
 ---
 <html lang={htmlLang}>
   <head>
