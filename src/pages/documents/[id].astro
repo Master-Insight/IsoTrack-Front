@@ -11,4 +11,6 @@ export const getStaticPaths = () =>
     params: { id: document.id },
   }));
 ---
-<BaseLayout component={DocumentDetail} componentProps={{ documentId }} />
+<BaseLayout>
+  <DocumentDetail client:load documentId={documentId}/>
+</BaseLayout>
