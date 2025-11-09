@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import type { ReactNode } from 'react';
-import type { Company, User } from '../../types/auth';
+import type { AuthSession, Company, User } from '../../types/auth';
 import * as authService from '../../lib/auth-service';
 import {
   clearCompanyId,
@@ -41,41 +41,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const applySession = useCallback((session: AuthSession | null) => {
+    if (session) {
+      setUser(session.user);
+      setCompanies(session.companies);
+      const nextCompanyId =
+        session.activeCompanyId ?? session.companies[0]?.id ?? null;
+
+      setCompany(nextCompanyId);
+      if (nextCompanyId) {
+        persistCompanyId(nextCompanyId);
+      } else {
+        clearCompanyId();
+      }
+    } else {
+      setUser(null);
+      setCompanies([]);
+      setCompany(null);
+      clearCompanyId();
+    }
+  }, []);
+
   const bootstrap = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       const session = await authService.loadProfile();
-      setUser(session.user);
-      setCompanies(session.companies);
-      if (session.companies.length) {
-        const storedCompanyId = getCompanyId();
-        const fallbackCompany = session.companies[0].id;
-        const nextCompanyId = session.companies.some(
-          (company) => company.id === storedCompanyId,
-        )
-          ? storedCompanyId
-          : fallbackCompany;
-        setCompany(nextCompanyId);
-        if (nextCompanyId) {
-          persistCompanyId(nextCompanyId);
-        }
-      } else {
-        setCompany(null);
-        clearCompanyId();
-      }
+      applySession(session);
     } catch (err) {
+      console.error('No se pudo cargar la sesión', err);
       clearTokens();
-      clearCompanyId();
-      setUser(null);
-      setCompanies([]);
+      applySession(null);
+      setError('No se pudo cargar la sesión. Inicia sesión nuevamente.');
     } finally {
       setIsLoading(false);
     }
-  }, [companyId]);
+  }, [applySession]);
 
   useEffect(() => {
-    bootstrap();
+    void bootstrap();
   }, [bootstrap]);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -83,35 +87,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
     try {
       const session = await authService.login({ email, password });
-
-      setUser(session.user);
-      setCompanies(session.companies);
-      const initialCompany = session.companies[0]?.id ?? null;
-      setCompany(initialCompany);
-      if (initialCompany) {
-        persistCompanyId(initialCompany);
-      }
+      applySession(session);
     } catch (err) {
-      console.error(err);
+      console.error('Error al iniciar sesión', err);
       setError((err as Error).message ?? 'No se pudo iniciar sesión');
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [applySession]);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
       await authService.logout();
     } finally {
-      setUser(null);
-      setCompanies([]);
-      setCompany(null);
-      clearCompanyId();
+      applySession(null);
       setIsLoading(false);
     }
-  }, []);
+  }, [applySession]);
 
   const setActiveCompany = useCallback((id: string) => {
     setCompany(id);
