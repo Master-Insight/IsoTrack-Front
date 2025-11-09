@@ -8,6 +8,8 @@ interface AppShellProps {
   children?: ReactNode;
   requireAuth?: boolean;
   fallback?: ReactNode;
+  component?: ComponentType<any>;
+  componentProps?: Record<string, unknown>;
 }
 
 const AuthenticatedContent = ({
@@ -16,8 +18,6 @@ const AuthenticatedContent = ({
 }: {
   children: ReactNode;
   fallback?: ReactNode;
-  component?: ComponentType<any>;
-  componentProps?: Record<string, unknown>;
 }) => {
   const { user, isLoading } = useAuth();
 
