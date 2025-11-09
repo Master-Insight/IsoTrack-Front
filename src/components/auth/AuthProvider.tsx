@@ -1,8 +1,20 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import type { Company, User } from '../../types/auth';
 import * as authService from '../../lib/auth-service';
-import { clearCompanyId, clearTokens, getCompanyId, setCompanyId as persistCompanyId } from '../../lib/session';
+import {
+  clearCompanyId,
+  clearTokens,
+  getCompanyId,
+  setCompanyId as persistCompanyId,
+} from '../../lib/session';
 
 interface AuthContextValue {
   user: User | null;
@@ -39,7 +51,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (session.companies.length) {
         const storedCompanyId = getCompanyId();
         const fallbackCompany = session.companies[0].id;
-        const nextCompanyId = session.companies.some((company) => company.id === storedCompanyId)
+        const nextCompanyId = session.companies.some(
+          (company) => company.id === storedCompanyId,
+        )
           ? storedCompanyId
           : fallbackCompany;
         setCompany(nextCompanyId);
@@ -69,6 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
     try {
       const session = await authService.login({ email, password });
+
       setUser(session.user);
       setCompanies(session.companies);
       const initialCompany = session.companies[0]?.id ?? null;
@@ -119,7 +134,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setActiveCompany,
       refreshProfile,
     }),
-    [user, companies, companyId, isLoading, error, login, logout, setActiveCompany, refreshProfile],
+    [
+      user,
+      companies,
+      companyId,
+      isLoading,
+      error,
+      login,
+      logout,
+      setActiveCompany,
+      refreshProfile,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

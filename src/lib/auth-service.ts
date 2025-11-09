@@ -41,7 +41,7 @@ export async function login(payload: LoginPayload): Promise<AuthSession> {
     body: JSON.stringify(payload),
     auth: false,
   });
-
+  console.log('response: ', response);
   const tokens = extractTokens(response);
 
   setTokens(tokens);
