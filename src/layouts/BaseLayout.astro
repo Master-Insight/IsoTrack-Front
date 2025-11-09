@@ -5,10 +5,38 @@ import AppShell from '../components/layout/AppShell';
 interface Props {
   requireAuth?: boolean;
   fallback?: any;
+  component?: any;
+  componentProps?: Record<string, unknown>;
+  htmlLang?: string;
+  title?: string;
 }
 
-const { requireAuth = true, fallback = null } = Astro.props as Props;
+const {
+  requireAuth = true,
+  fallback = null,
+  component = undefined,
+  componentProps = {},
+  htmlLang = 'es',
+  title = 'IsoTrack',
+} = Astro.props as Props;
 ---
-<AppShell client:load requireAuth={requireAuth} fallback={fallback}>
-  <slot />
-</AppShell>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <AppShell
+      client:load
+      requireAuth={requireAuth}
+      fallback={fallback}
+      component={component}
+      componentProps={componentProps}
+    >
+      {component ? null : <slot />}
+    </AppShell>
+    <slot name="scripts" />
+  </body>
+</html>
