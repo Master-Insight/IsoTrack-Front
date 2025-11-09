@@ -11,13 +11,17 @@ export interface Company {
 }
 
 export interface LoginResponse {
-  access_token: string;
+  access_token?: string;
+  accessToken?: string;
   refresh_token?: string;
+  refreshToken?: string;
   user: User;
   companies: Company[];
 }
 
 export interface RefreshResponse {
-  access_token: string;
+  access_token?: string;
+  accessToken?: string;
   refresh_token?: string;
+  refreshToken?: string;
 }

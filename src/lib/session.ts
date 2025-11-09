@@ -48,6 +48,8 @@ export function setTokens(tokens: SessionTokens) {
   safeSetItem(ACCESS_TOKEN_KEY, tokens.accessToken);
   if (tokens.refreshToken) {
     safeSetItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  } else {
+    safeRemoveItem(REFRESH_TOKEN_KEY);
   }
 }
 
