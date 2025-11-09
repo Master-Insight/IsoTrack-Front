@@ -1,16 +1,24 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../auth/AuthProvider';
 import { Header } from './Header';
 import Sidebar from './Sidebar';
 
 interface AppShellProps {
-  children: ReactNode;
+  children?: ReactNode;
   requireAuth?: boolean;
   fallback?: ReactNode;
 }
 
-const AuthenticatedContent = ({ children, fallback }: { children: ReactNode; fallback?: ReactNode }) => {
+const AuthenticatedContent = ({
+  children,
+  fallback,
+}: {
+  children: ReactNode;
+  fallback?: ReactNode;
+  component?: ComponentType<any>;
+  componentProps?: Record<string, unknown>;
+}) => {
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
@@ -38,7 +46,21 @@ const AuthenticatedContent = ({ children, fallback }: { children: ReactNode; fal
   return <>{children}</>;
 };
 
-const AppShell = ({ children, requireAuth = true, fallback }: AppShellProps) => {
+const AppShell = ({
+  children,
+  requireAuth = true,
+  fallback,
+  component: ContentComponent,
+  componentProps = {},
+}: AppShellProps) => {
+  const renderContent = () => {
+    if (ContentComponent) {
+      return <ContentComponent {...componentProps} />;
+    }
+
+    return <>{children}</>;
+  };
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-slate-100">
@@ -47,9 +69,11 @@ const AppShell = ({ children, requireAuth = true, fallback }: AppShellProps) => 
           <Sidebar />
           <main className="flex-1 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             {requireAuth ? (
-              <AuthenticatedContent fallback={fallback}>{children}</AuthenticatedContent>
+              <AuthenticatedContent fallback={fallback}>
+                {renderContent()}
+              </AuthenticatedContent>
             ) : (
-              children
+              renderContent()
             )}
           </main>
         </div>
