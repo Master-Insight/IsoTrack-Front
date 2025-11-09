@@ -1,15 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DocumentsPage from '../../components/documents/DocumentsPage';
 ---
-<BaseLayout>
-  <section class="space-y-4">
-    <h1 class="text-2xl font-semibold text-slate-900">Documentos</h1>
-    <p class="text-sm text-slate-600">
-      Aquí podrás consultar los documentos vinculados a tus normas ISO. Próximamente agregaremos filtros, búsqueda avanzada y
-      estados de revisión.
-    </p>
-    <div class="rounded-lg border border-dashed border-slate-300 p-6 text-sm text-slate-500">
-      Aún no hay documentos cargados. Cuando conectemos el backend verás aquí el listado sincronizado desde FastAPI.
-    </div>
-  </section>
-</BaseLayout>
+<BaseLayout component={DocumentsPage} />

@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DocumentDetail from '../../components/documents/DocumentDetail';
+import { mockDocuments } from '../../lib/mock-documents';
+
+const { id } = Astro.params;
+const documentId = id ?? '';
+
+export const getStaticPaths = () =>
+  mockDocuments.map((document) => ({
+    params: { id: document.id },
+  }));
+---
+<BaseLayout component={DocumentDetail} componentProps={{ documentId }} />

@@ -1,0 +1,202 @@
+import { useMemo, useState } from 'react';
+import { getDocumentById } from '../../lib/mock-documents';
+import type { DocumentRecord } from '../../types/documents';
+import { Button } from '../ui/Button';
+
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'medium',
+  }).format(new Date(value));
+
+interface DocumentDetailProps {
+  documentId: string;
+}
+
+const DocumentPreview = ({ document }: { document: DocumentRecord }) => {
+  if (document.format === 'video') {
+    return (
+      <div className="aspect-video w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+        <iframe
+          src={document.url}
+          title={document.title}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-[480px] w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+      <iframe src={document.url} title={document.title} className="h-full w-full" />
+    </div>
+  );
+};
+
+const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
+  const document = useMemo(() => getDocumentById(documentId), [documentId]);
+  const initialAcknowledgement = useMemo(() => {
+    if (!document) return { acknowledged: false, timestamp: null as string | null };
+
+    const latestOwnRead = document.reads
+      .filter((read) => read.user === 'Ana Gómez')
+      .sort((a, b) => new Date(b.readAt).getTime() - new Date(a.readAt).getTime())[0];
+
+    return {
+      acknowledged: Boolean(latestOwnRead),
+      timestamp: latestOwnRead?.readAt ?? null,
+    };
+  }, [document]);
+
+  const [acknowledgedAt, setAcknowledgedAt] = useState<string | null>(initialAcknowledgement.timestamp);
+  const [readHistory, setReadHistory] = useState(document?.reads ?? []);
+  const [isAcknowledged, setIsAcknowledged] = useState(initialAcknowledgement.acknowledged);
+
+  if (!document) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold text-slate-900">Documento no encontrado</h1>
+        <p className="text-sm text-slate-600">
+          No encontramos un documento con el identificador solicitado. Vuelve al listado para seleccionar otro registro.
+        </p>
+        <a href="/documents" className="text-brand-600 hover:underline">
+          ← Volver a Documentos
+        </a>
+      </div>
+    );
+  }
+
+  const handleAcknowledge = () => {
+    const now = new Date().toISOString();
+    setIsAcknowledged(true);
+    setAcknowledgedAt(now);
+    setReadHistory((prev) => [
+      ...prev,
+      {
+        id: `local-read-${Date.now()}`,
+        user: 'Ana Gómez',
+        role: 'Responsable Calidad',
+        readAt: now,
+      },
+    ]);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm text-slate-500">{document.code}</p>
+          <h1 className="text-3xl font-semibold text-slate-900">{document.title}</h1>
+          <p className="text-sm text-slate-600">Área: {document.complianceArea}</p>
+        </div>
+        <a href="/documents" className="text-sm text-brand-600 hover:underline">
+          ← Volver al listado
+        </a>
+      </div>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
+          <DocumentPreview document={document} />
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Descripción y alcance</h2>
+            <p className="mt-2 text-sm text-slate-600">{document.summary}</p>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Responsable</dt>
+                <dd className="text-sm font-medium text-slate-700">{document.owner}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Última actualización</dt>
+                <dd className="text-sm font-medium text-slate-700">{formatDateTime(document.updatedAt)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Estado</dt>
+                <dd className="text-sm font-medium capitalize text-slate-700">{document.status.replace('_', ' ')}</dd>
+              </div>
+              {document.nextReviewAt && (
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-slate-500">Próxima revisión</dt>
+                  <dd className="text-sm font-medium text-slate-700">{formatDate(document.nextReviewAt)}</dd>
+                </div>
+              )}
+            </dl>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {document.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <aside className="space-y-4">
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Acciones del documento</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Revisa el contenido y deja constancia de lectura para cumplir con los requisitos de la norma ISO.
+            </p>
+            <Button className="mt-4 w-full" onClick={handleAcknowledge} disabled={isAcknowledged}>
+              {isAcknowledged ? 'Lectura registrada' : 'Marcar como leído'}
+            </Button>
+            {acknowledgedAt && (
+              <p className="mt-2 text-xs text-slate-500">
+                Última confirmación registrada el {formatDateTime(acknowledgedAt)}. Esta marca se sincronizará con el backend.
+              </p>
+            )}
+          </section>
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Historial de versiones</h2>
+            <ul className="mt-3 space-y-3">
+              {document.versions
+                .slice()
+                .reverse()
+                .map((version) => (
+                  <li key={version.id} className="rounded-md border border-slate-200 p-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold text-slate-700">Versión {version.version}</span>
+                      <span className="text-xs text-slate-500">{formatDateTime(version.updatedAt)}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">{version.updatedBy}</p>
+                    {version.notes && <p className="mt-1 text-xs text-slate-500">{version.notes}</p>}
+                    <a
+                      href={version.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline"
+                    >
+                      Descargar versión
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </section>
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Lecturas registradas</h2>
+            <ul className="mt-3 space-y-3">
+              {readHistory.length === 0 && <li className="text-sm text-slate-600">Aún no hay lecturas registradas.</li>}
+              {readHistory.map((read) => (
+                <li key={read.id} className="rounded-md border border-slate-200 p-3 text-sm text-slate-700">
+                  <p className="font-medium">{read.user}</p>
+                  <p className="text-xs text-slate-500">{read.role}</p>
+                  <p className="text-xs text-slate-500">{formatDateTime(read.readAt)}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </aside>
+      </section>
+    </div>
+  );
+};
+
+export default DocumentDetail;
