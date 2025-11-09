@@ -1,5 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import DocumentsPage from '../../components/documents/DocumentsPage';
+import DocumentsPage from '../../components/documents/DocumentsPage.jsx';
 ---
-<BaseLayout component={DocumentsPage} />
+
+<BaseLayout>
+  <DocumentsPage client:load />
+</BaseLayout>
