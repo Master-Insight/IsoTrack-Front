@@ -24,6 +24,17 @@ export interface AuthSession {
   companies: Company[];
 }
 
+function extractTokens(response: LoginResponse | RefreshResponse) {
+  const accessToken = response.access_token ?? response.accessToken;
+  const refreshToken = response.refresh_token ?? response.refreshToken;
+
+  if (!accessToken) {
+    throw new Error('Missing access token');
+  }
+
+  return { accessToken, refreshToken };
+}
+
 export async function login(payload: LoginPayload): Promise<AuthSession> {
   const response = await apiFetch<LoginResponse>('/users/login', {
     method: 'POST',
@@ -31,10 +42,9 @@ export async function login(payload: LoginPayload): Promise<AuthSession> {
     auth: false,
   });
 
-  setTokens({
-    accessToken: response.access_token,
-    refreshToken: response.refresh_token,
-  });
+  const tokens = extractTokens(response);
+
+  setTokens(tokens);
   if (response.companies?.length) {
     setCompanyId(response.companies[0].id);
   }
@@ -54,10 +64,7 @@ export async function refresh(): Promise<void> {
     auth: false,
   });
 
-  setTokens({
-    accessToken: response.access_token,
-    refreshToken: response.refresh_token,
-  });
+  setTokens(extractTokens(response));
 }
 
 export async function logout(): Promise<void> {
