@@ -19,11 +19,33 @@ interface DocumentDetailProps {
 }
 
 const DocumentPreview = ({ document }: { document: DocumentRecord }) => {
-  if (document.format === 'video') {
+  const currentVersion = document.currentVersion;
+
+  if (!currentVersion) {
+    return (
+      <div className="flex h-[240px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500">
+        Aún no hay una versión publicada para previsualizar.
+      </div>
+    );
+  }
+
+  const previewUrl = currentVersion.external_url ?? currentVersion.file_url;
+
+  if (!previewUrl) {
+    return (
+      <div className="flex h-[240px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500">
+        La versión actual no tiene un archivo asociado.
+      </div>
+    );
+  }
+
+  const isVideo = currentVersion.format === 'video' || /youtube\.com|youtu\.be/.test(previewUrl);
+
+  if (isVideo) {
     return (
       <div className="aspect-video w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm">
         <iframe
-          src={document.url}
+          src={previewUrl}
           title={document.title}
           className="h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -35,7 +57,7 @@ const DocumentPreview = ({ document }: { document: DocumentRecord }) => {
 
   return (
     <div className="h-[480px] w-full overflow-hidden rounded-lg border border-slate-200 shadow-sm">
-      <iframe src={document.url} title={document.title} className="h-full w-full" />
+      <iframe src={previewUrl} title={document.title} className="h-full w-full" />
     </div>
   );
 };
@@ -56,7 +78,7 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
   }, [document]);
 
   const [acknowledgedAt, setAcknowledgedAt] = useState<string | null>(initialAcknowledgement.timestamp);
-  const [readHistory, setReadHistory] = useState(document?.reads ?? []);
+  const [readHistory, setReadHistory] = useState<DocumentRecord['reads']>(document?.reads ?? []);
   const [isAcknowledged, setIsAcknowledged] = useState(initialAcknowledgement.acknowledged);
 
   if (!document) {
@@ -81,9 +103,12 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
       ...prev,
       {
         id: `local-read-${Date.now()}`,
+        document_id: document.id,
+        user_id: 'local-user',
         user: 'Ana Gómez',
-        role: 'Responsable Calidad',
+        position: 'Responsable Calidad',
         readAt: now,
+        dueDate: null,
       },
     ]);
   };
@@ -94,7 +119,7 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
         <div>
           <p className="text-sm text-slate-500">{document.code}</p>
           <h1 className="text-3xl font-semibold text-slate-900">{document.title}</h1>
-          <p className="text-sm text-slate-600">Área: {document.complianceArea}</p>
+          <p className="text-sm text-slate-600">Categoría: {document.category}</p>
         </div>
         <a href="/documents" className="text-sm text-brand-600 hover:underline">
           ← Volver al listado
@@ -106,7 +131,7 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
           <DocumentPreview document={document} />
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Descripción y alcance</h2>
-            <p className="mt-2 text-sm text-slate-600">{document.summary}</p>
+            <p className="mt-2 text-sm text-slate-600">{document.description}</p>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-xs uppercase tracking-wide text-slate-500">Responsable</dt>
@@ -118,7 +143,9 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-slate-500">Estado</dt>
-                <dd className="text-sm font-medium capitalize text-slate-700">{document.status.replace('_', ' ')}</dd>
+                <dd className="text-sm font-medium capitalize text-slate-700">
+                  {document.status ? document.status.replace(/_/g, ' ') : 'Sin estado'}
+                </dd>
               </div>
               {document.nextReviewAt && (
                 <div>
@@ -158,25 +185,32 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
             <ul className="mt-3 space-y-3">
               {document.versions
                 .slice()
-                .reverse()
-                .map((version) => (
-                  <li key={version.id} className="rounded-md border border-slate-200 p-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-semibold text-slate-700">Versión {version.version}</span>
-                      <span className="text-xs text-slate-500">{formatDateTime(version.updatedAt)}</span>
-                    </div>
-                    <p className="mt-1 text-xs text-slate-500">{version.updatedBy}</p>
-                    {version.notes && <p className="mt-1 text-xs text-slate-500">{version.notes}</p>}
-                    <a
-                      href={version.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline"
-                    >
-                      Descargar versión
-                    </a>
-                  </li>
-                ))}
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .map((version) => {
+                  const downloadUrl = version.file_url ?? version.external_url;
+                  return (
+                    <li key={version.id} className="rounded-md border border-slate-200 p-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-semibold text-slate-700">Versión {version.version}</span>
+                        <span className="text-xs text-slate-500">{formatDateTime(version.created_at)}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Aprobado por {version.approved_by_name}</p>
+                      {version.notes && <p className="mt-1 text-xs text-slate-500">{version.notes}</p>}
+                      {downloadUrl ? (
+                        <a
+                          href={downloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline"
+                        >
+                          Abrir versión
+                        </a>
+                      ) : (
+                        <span className="mt-2 inline-block text-xs text-slate-400">Sin archivo disponible</span>
+                      )}
+                    </li>
+                  );
+                })}
             </ul>
           </section>
 
@@ -187,7 +221,7 @@ const DocumentDetail = ({ documentId }: DocumentDetailProps) => {
               {readHistory.map((read) => (
                 <li key={read.id} className="rounded-md border border-slate-200 p-3 text-sm text-slate-700">
                   <p className="font-medium">{read.user}</p>
-                  <p className="text-xs text-slate-500">{read.role}</p>
+                  <p className="text-xs text-slate-500">{read.position ?? 'Sin rol definido'}</p>
                   <p className="text-xs text-slate-500">{formatDateTime(read.readAt)}</p>
                 </li>
               ))}

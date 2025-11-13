@@ -1,41 +1,50 @@
-export type DocumentStatus = 'vigente' | 'en_revision' | 'borrador';
+export type DocumentStatus = 'publicado' | 'vigente' | 'en_revision' | 'borrador' | null;
 
-export type DocumentFormat = 'pdf' | 'video';
+export type DocumentFormat = 'pdf' | 'video' | 'docx' | 'xlsx' | null;
 
 export interface DocumentVersion {
   id: string;
-  version: number;
-  approved_at: string;
+  document_id: string;
+  version: string;
+  status: string;
+  file_url: string | null;
+  external_url: string | null;
+  notes: string | null;
   approved_by: string;
   approved_by_name: string;
-  notes?: string;
+  approved_at: string;
   format: DocumentFormat;
-  external_url: string;
+  created_at: string;
 }
 
 export interface DocumentRead {
   id: string;
+  document_id: string;
   user_id: string;
   user: string;
-  position: string;
+  position: string | null;
   readAt: string;
+  dueDate: string | null;
 }
 
 export interface DocumentRecord {
   id: string;
   title: string;
   code: string;
-  category: string;
+  type: string;
+  process_id: string | null;
   owner_id: string;
   owner: string;
-  status: DocumentStatus;
-  tags: string[];
   description: string;
-  coverImage?: string;
-  currentVersion: DocumentVersion;
-  versions: DocumentVersion[];
-  reads: DocumentRead[];
+  active: boolean;
+  category: string;
+  tags: string[];
+  company_id: string;
   createdAt: string;
   updatedAt: string;
-  nextReviewAt?: string;
+  status: DocumentStatus;
+  currentVersion: DocumentVersion | null;
+  versions: DocumentVersion[];
+  reads: DocumentRead[];
+  nextReviewAt: string | null;
 }

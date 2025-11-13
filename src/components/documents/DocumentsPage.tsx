@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import {
-  mockDocuments,
-  getDocumentCategories,
-  getDocumentStatuses,
-} from '../../lib/mock-documents';
-import type { DocumentRecord, DocumentStatus } from '../../types/documents';
+import { mockDocuments } from '../../lib/mock-documents';
+import type { DocumentRecord, DocumentStatus, DocumentVersion } from '../../types/documents';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Button } from '../ui/Button';
@@ -17,46 +13,67 @@ const formatDate = (value: string) =>
     timeStyle: 'short',
   }).format(new Date(value));
 
-const statusLabels: Record<DocumentStatus, string> = {
+type FormStatusValue = Exclude<DocumentStatus, null> | 'sin_estado';
+type FormFormatValue = 'pdf' | 'video' | 'docx' | 'xlsx';
+
+const statusLabels: Record<FormStatusValue, string> = {
+  publicado: 'Publicado',
   vigente: 'Vigente',
   en_revision: 'En revisión',
   borrador: 'Borrador',
+  sin_estado: 'Sin estado',
 };
 
-const statusBadgeStyles: Record<DocumentStatus, string> = {
+const statusBadgeStyles: Record<FormStatusValue, string> = {
+  publicado: 'bg-sky-100 text-sky-700 border border-sky-200',
   vigente: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
   en_revision: 'bg-amber-100 text-amber-700 border border-amber-200',
   borrador: 'bg-slate-100 text-slate-600 border border-slate-200',
+  sin_estado: 'bg-slate-100 text-slate-500 border border-slate-200',
+};
+
+const resolveStatusLabel = (status: DocumentStatus) =>
+  status ? statusLabels[status as FormStatusValue] ?? status : statusLabels.sin_estado;
+
+const resolveStatusStyle = (status: DocumentStatus) =>
+  status ? statusBadgeStyles[status as FormStatusValue] ?? statusBadgeStyles.sin_estado : statusBadgeStyles.sin_estado;
+
+const getFilterStatusLabel = (value: FormStatusValue | 'todos') => {
+  if (value === 'todos') return 'Todos los estados';
+  if (value === 'sin_estado') return statusLabels.sin_estado;
+  return statusLabels[value] ?? value;
 };
 
 interface FormState {
   title: string;
   code: string;
+  type: string;
   category: string;
   owner: string;
-  status: DocumentStatus;
+  status: FormStatusValue;
   tags: string;
-  format: 'pdf' | 'video';
-  url: string;
-  summary: string;
+  format: FormFormatValue;
+  link: string;
+  description: string;
 }
 
 const defaultFormState: FormState = {
   title: '',
   code: '',
+  type: 'POE',
   category: '',
   owner: '',
   status: 'borrador',
   tags: '',
   format: 'pdf',
-  url: '',
-  summary: '',
+  link: '',
+  description: '',
 };
 
 const DocumentsPage = () => {
   const [documents, setDocuments] = useState<DocumentRecord[]>(mockDocuments);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<DocumentStatus | 'todos'>(
+  const [statusFilter, setStatusFilter] = useState<FormStatusValue | 'todos'>(
     'todos',
   );
   const [categoryFilter, setCategoryFilter] = useState<string>('todas');
@@ -67,8 +84,28 @@ const DocumentsPage = () => {
     text: string;
   } | null>(null);
 
-  const categories = useMemo(() => ['todas', ...getDocumentCategories()], []);
-  const statuses = useMemo(() => ['todos', ...getDocumentStatuses()], []);
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+    documents.forEach((document) => {
+      uniqueCategories.add(document.category);
+    });
+    return ['todas', ...Array.from(uniqueCategories).sort()];
+  }, [documents]);
+  const statuses = useMemo(() => {
+    const uniqueStatuses = new Set<FormStatusValue>();
+    documents.forEach((document) => {
+      if (document.status === null) {
+        uniqueStatuses.add('sin_estado');
+      } else {
+        uniqueStatuses.add(document.status as FormStatusValue);
+      }
+    });
+    return ['todos', ...Array.from(uniqueStatuses)] as Array<'todos' | FormStatusValue>;
+  }, [documents]);
+  const formStatusOptions = useMemo(
+    () => Object.keys(statusLabels) as FormStatusValue[],
+    [],
+  );
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((document) => {
@@ -81,7 +118,10 @@ const DocumentsPage = () => {
         .toLowerCase()
         .includes(search.toLowerCase());
       const matchesStatus =
-        statusFilter === 'todos' || document.status === statusFilter;
+        statusFilter === 'todos' ||
+        (statusFilter === 'sin_estado'
+          ? document.status === null
+          : document.status === statusFilter);
       const matchesCategory =
         categoryFilter === 'todas' || document.category === categoryFilter;
 
@@ -99,14 +139,14 @@ const DocumentsPage = () => {
   const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setFormState((prev) => ({
       ...prev,
-      status: event.target.value as DocumentStatus,
+      status: event.target.value as FormStatusValue,
     }));
   };
 
   const handleFormatChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setFormState((prev) => ({
       ...prev,
-      format: event.target.value as 'pdf' | 'video',
+      format: event.target.value as FormFormatValue,
     }));
   };
 
@@ -121,7 +161,7 @@ const DocumentsPage = () => {
       !formState.title ||
       !formState.code ||
       !formState.category ||
-      !formState.url
+      !formState.link
     ) {
       setFeedbackMessage({
         type: 'error',
@@ -131,44 +171,51 @@ const DocumentsPage = () => {
     }
 
     const now = new Date().toISOString();
+    const documentId = `local-doc-${Date.now()}`;
+    const versionId = `local-version-${Date.now()}`;
     const tags = formState.tags
       .split(',')
       .map((tag) => tag.trim())
       .filter(Boolean);
+    const ownerName = formState.owner || 'Sin asignar';
+    const statusValue: DocumentStatus =
+      formState.status === 'sin_estado' ? null : formState.status;
+
+    const newVersion: DocumentVersion = {
+      id: versionId,
+      document_id: documentId,
+      version: '1.0',
+      status: formState.status === 'sin_estado' ? 'borrador' : formState.status,
+      file_url: null,
+      external_url: formState.link,
+      notes: 'Documento cargado desde el formulario rápido.',
+      approved_by: 'local-user',
+      approved_by_name: ownerName,
+      approved_at: now,
+      format: formState.format,
+      created_at: now,
+    };
 
     const newDocument: DocumentRecord = {
-      id: `DOC-${Date.now()}`,
       title: formState.title,
       code: formState.code,
+      type: formState.type || 'POE',
+      process_id: null,
+      owner_id: 'local-owner',
+      owner: ownerName,
+      description: formState.description || 'Documento en preparación.',
+      active: true,
       category: formState.category,
-      owner: formState.owner || 'Sin asignar',
-      status: formState.status,
       tags,
-      summary: formState.summary || 'Documento en preparación.',
-      format: formState.format,
-      currentVersion: {
-        id: `v1-${Date.now()}`,
-        version: '1.0',
-        updatedAt: now,
-        updatedBy: formState.owner || 'Equipo ISO',
-        notes: 'Documento cargado desde el formulario rápido.',
-        fileUrl: formState.url,
-      },
-      versions: [
-        {
-          id: `v1-${Date.now()}`,
-          version: '1.0',
-          updatedAt: now,
-          updatedBy: formState.owner || 'Equipo ISO',
-          notes: 'Documento cargado desde el formulario rápido.',
-          fileUrl: formState.url,
-        },
-      ],
-      reads: [],
-      complianceArea: 'Sin asignar',
+      id: documentId,
+      company_id: 'local-company',
       createdAt: now,
       updatedAt: now,
-      url: formState.url,
+      status: statusValue,
+      currentVersion: newVersion,
+      versions: [newVersion],
+      reads: [],
+      nextReviewAt: null,
     };
 
     setDocuments((prev) => [newDocument, ...prev]);
@@ -216,15 +263,13 @@ const DocumentsPage = () => {
               id="status"
               value={statusFilter}
               onChange={(event) =>
-                setStatusFilter(event.target.value as DocumentStatus | 'todos')
+                setStatusFilter(event.target.value as FormStatusValue | 'todos')
               }
               className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
-                  {status === 'todos'
-                    ? 'Todos los estados'
-                    : statusLabels[status as DocumentStatus]}
+                  {getFilterStatusLabel(status)}
                 </option>
               ))}
             </select>
@@ -296,6 +341,17 @@ const DocumentsPage = () => {
               />
             </div>
             <div>
+              <Label htmlFor="type">Tipo *</Label>
+              <Input
+                id="type"
+                name="type"
+                value={formState.type}
+                onChange={handleInputChange}
+                placeholder="Ej. POE, Manual, Instructivo"
+                required
+              />
+            </div>
+            <div>
               <Label htmlFor="categoryInput">Categoría *</Label>
               <Input
                 id="categoryInput"
@@ -324,7 +380,7 @@ const DocumentsPage = () => {
                 onChange={handleStatusChange}
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
               >
-                {getDocumentStatuses().map((status) => (
+                {formStatusOptions.map((status) => (
                   <option key={status} value={status}>
                     {statusLabels[status]}
                   </option>
@@ -341,15 +397,17 @@ const DocumentsPage = () => {
               >
                 <option value="pdf">PDF</option>
                 <option value="video">Video</option>
+                <option value="docx">Word (DOCX)</option>
+                <option value="xlsx">Excel (XLSX)</option>
               </select>
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="url">URL del archivo *</Label>
+              <Label htmlFor="link">URL del archivo *</Label>
               <Input
-                id="url"
-                name="url"
+                id="link"
+                name="link"
                 type="url"
-                value={formState.url}
+                value={formState.link}
                 onChange={handleInputChange}
                 placeholder="https://..."
                 required
@@ -366,11 +424,11 @@ const DocumentsPage = () => {
               />
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="summary">Descripción</Label>
+              <Label htmlFor="description">Descripción</Label>
               <Textarea
-                id="summary"
-                name="summary"
-                value={formState.summary}
+                id="description"
+                name="description"
+                value={formState.description}
                 onChange={handleInputChange}
                 rows={4}
                 placeholder="Breve descripción del alcance del documento."
@@ -427,74 +485,84 @@ const DocumentsPage = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white">
-            {filteredDocuments.map((document) => (
-              <tr key={document.id} className="transition hover:bg-slate-50">
-                <td className="px-4 py-3">
-                  <div className="space-y-1">
-                    <a
-                      href={`/documents/${document.id}`}
-                      className="font-medium text-brand-600 hover:underline"
+            {filteredDocuments.map((document) => {
+              const currentVersion = document.currentVersion;
+              const versionLabel = currentVersion?.version ?? '—';
+              const accessUrl = currentVersion?.external_url ?? currentVersion?.file_url ?? null;
+
+              return (
+                <tr key={document.id} className="transition hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <div className="space-y-1">
+                      <a
+                        href={`/documents/${document.id}`}
+                        className="font-medium text-brand-600 hover:underline"
+                      >
+                        {document.title}
+                      </a>
+                      <div className="text-xs text-slate-500">
+                        <span className="font-medium">Código:</span>{' '}
+                        {document.code}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        <span className="font-medium">Versión:</span>{' '}
+                        {versionLabel}
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {document.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-600">
+                    {document.category}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${resolveStatusStyle(document.status)}`}
                     >
-                      {document.title}
-                    </a>
-                    <div className="text-xs text-slate-500">
-                      <span className="font-medium">Código:</span>{' '}
-                      {document.code}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      <span className="font-medium">Versión:</span>{' '}
-                      {document.currentVersion.version}
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {document.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+                      {resolveStatusLabel(document.status)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-600">
+                    <p className="font-medium text-slate-700">
+                      {formatDate(document.updatedAt)}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Responsable: {document.owner}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <a
+                        className="text-brand-600 hover:underline"
+                        href={`/documents/${document.id}`}
+                      >
+                        Ver detalle
+                      </a>
+                      {accessUrl ? (
+                        <a
+                          className="text-slate-500 hover:text-slate-700"
+                          href={accessUrl}
+                          target="_blank"
+                          rel="noreferrer"
                         >
-                          #{tag}
-                        </span>
-                      ))}
+                          Abrir archivo
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">Sin archivo</span>
+                      )}
                     </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-600">
-                  {document.category}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeStyles[document.status]}`}
-                  >
-                    {statusLabels[document.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-600">
-                  <p className="font-medium text-slate-700">
-                    {formatDate(document.updatedAt)}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Responsable: {document.owner}
-                  </p>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <a
-                      className="text-brand-600 hover:underline"
-                      href={`/documents/${document.id}`}
-                    >
-                      Ver detalle
-                    </a>
-                    <a
-                      className="text-slate-500 hover:text-slate-700"
-                      href={document.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Abrir archivo
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {filteredDocuments.length === 0 && (
