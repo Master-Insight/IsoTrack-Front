@@ -18,25 +18,13 @@ interface DocumentDetailProps {
   documentId: string;
 }
 
-const DocumentPreviewFallback = ({
-  message,
-  previewUrl,
-}: {
-  message: string;
-  previewUrl: string;
-}) => (
+const DocumentPreviewFallback = () => (
   <div className="flex h-[480px] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-6 text-center shadow-sm">
     <img
       src="/document-preview-fallback.svg"
       alt="Vista previa no disponible"
-      className="h-32 w-32"
+      className="h-100% w-100%"
     />
-    <p className="text-sm text-slate-600">{message}</p>
-    <Button asChild variant="secondary">
-      <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-        Abrir documento en una nueva pestaña
-      </a>
-    </Button>
   </div>
 );
 
@@ -88,22 +76,8 @@ const DocumentPreview = ({ document }: { document: DocumentRecord }) => {
     }
   }, [previewUrl]);
 
-  if (hasError && previewUrl) {
-    return (
-      <DocumentPreviewFallback
-        previewUrl={previewUrl}
-        message="No pudimos mostrar la vista previa del documento. Puedes abrir el archivo en una nueva pestaña."
-      />
-    );
-  }
-
-  if (!isVideo && isExternalUrl && previewUrl) {
-    return (
-      <DocumentPreviewFallback
-        previewUrl={previewUrl}
-        message="El origen del documento no permite mostrar la vista previa embebida por políticas de seguridad. Ábrelo en una nueva pestaña para revisarlo."
-      />
-    );
+  if ((hasError && previewUrl) || (!isVideo && isExternalUrl && previewUrl)) {
+    return <DocumentPreviewFallback />;
   }
 
   if (isVideo) {
