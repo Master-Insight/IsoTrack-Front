@@ -1,0 +1,9 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="32" fill="#F1F5F9"/>
+  <rect x="96" y="96" width="448" height="288" rx="24" fill="#E2E8F0"/>
+  <path d="M224 240h192" stroke="#94A3B8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M256 288h128" stroke="#94A3B8" stroke-width="12" stroke-linecap="round"/>
+  <rect x="256" y="152" width="128" height="56" rx="12" fill="#CBD5F5"/>
+  <path d="M232 344h176" stroke="#CBD5F5" stroke-width="8" stroke-linecap="round" stroke-dasharray="16 16"/>
+  <text x="320" y="420" text-anchor="middle" fill="#475569" font-size="24" font-family="'Inter', 'Segoe UI', sans-serif">Vista previa no disponible</text>
+</svg>
