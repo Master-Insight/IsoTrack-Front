@@ -4,7 +4,7 @@ export type DocumentFormat = 'pdf' | 'video';
 
 export interface DocumentVersion {
   id: string;
-  version: string;
+  version: number;
   approved_at: string;
   approved_by: string;
   approved_by_name: string;
