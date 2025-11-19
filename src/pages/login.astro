@@ -31,7 +31,7 @@ const title = "Iniciar sesión en IsoTrack";
     };
 
     const validateExistingSession = () => {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
       if (token) {
         redirectToHome();
       }

@@ -25,21 +25,32 @@ const documentsEndpoint = `${API_URL}/documents`;
         class="absolute inset-0 bg-white/80 backdrop-blur-sm border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-center"
         role="presentation"
       >
-        <p class="text-sm text-slate-600">Debes iniciar sesión para ver la información de la empresa</p>
-        <p class="text-xs text-slate-500">Sin registro disponible · Usa las credenciales provistas</p>
+        <p class="text-sm text-slate-600">
+          Debes iniciar sesión para ver la información de la empresa
+        </p>
+        <p class="text-xs text-slate-500">
+          Sin registro disponible · Usa las credenciales provistas
+        </p>
       </div>
 
       <header class="space-y-3">
-        <p class="badge bg-primary/10 text-primary">Astro + Radix · Auth requerida</p>
-        <h1 class="text-3xl font-bold text-ink">Fase 1.3 · Bienvenida + documentos</h1>
+        <p class="badge bg-primary/10 text-primary">
+          Astro + Radix · Auth requerida
+        </p>
+        <h1 class="text-3xl font-bold text-ink">
+          Fase 1.3 · Bienvenida + documentos
+        </h1>
         <p class="text-slate-600">
-          El usuario comienza en <span class="font-semibold">/login</span> y, tras autenticarse, vuelve aquí para ver su bienvenida y
-          el primer listado protegido de documentos de la empresa.
+          El usuario comienza en <span class="font-semibold">/login</span> y, tras
+          autenticarse, vuelve aquí para ver su bienvenida y el primer listado protegido
+          de documentos de la empresa.
         </p>
       </header>
 
       <div class="flex items-center justify-end">
-        <button id="logout-button" class="button-secondary" type="button">Cerrar sesión</button>
+        <button id="logout-button" class="button-secondary" type="button"
+          >Cerrar sesión</button
+        >
       </div>
 
       <div class="grid sm:grid-cols-2 gap-4" id="locked-content">
@@ -51,75 +62,122 @@ const documentsEndpoint = `${API_URL}/documents`;
         <div class="card-surface p-5 space-y-2">
           <p class="text-sm text-slate-500">Supabase URL</p>
           <p class="font-semibold break-all text-primary">{SUPABASE_URL}</p>
-          <p class="text-xs text-slate-500">Configurable por entorno VITE/PUBLIC.</p>
+          <p class="text-xs text-slate-500">
+            Configurable por entorno VITE/PUBLIC.
+          </p>
         </div>
         <div class="card-surface p-5 space-y-3 sm:col-span-2" id="profile-card">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm text-slate-500">Usuario autenticado</p>
-              <p id="profile-name" class="font-semibold text-lg">Pendiente de autenticación</p>
+              <p id="profile-name" class="font-semibold text-lg">
+                Pendiente de autenticación
+              </p>
               <p id="profile-email" class="text-xs text-slate-500">---</p>
             </div>
-            <span class="badge bg-emerald-100 text-emerald-700" id="profile-role">Sin sesión</span>
+            <span
+              class="badge bg-emerald-100 text-emerald-700"
+              id="profile-role">Sin sesión</span
+            >
           </div>
-          <div class="grid sm:grid-cols-3 gap-3 text-sm text-slate-600" id="profile-meta">
+          <div
+            class="grid sm:grid-cols-3 gap-3 text-sm text-slate-600"
+            id="profile-meta"
+          >
             <div>
               <p class="text-xs uppercase text-slate-500">Company ID</p>
-              <p id="profile-company">—</p>
+              <p id="profile-company">—</p>
             </div>
             <div>
               <p class="text-xs uppercase text-slate-500">Usuario ID</p>
-              <p id="profile-id">—</p>
+              <p id="profile-id">—</p>
             </div>
             <div>
               <p class="text-xs uppercase text-slate-500">Creado</p>
               <p id="profile-created">—</p>
             </div>
           </div>
-          <div class="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-primary" id="welcome-message">
+          <div
+            class="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-primary"
+            id="welcome-message"
+          >
             Te daremos la bienvenida apenas se valide tu sesión.
           </div>
         </div>
-        <div class="card-surface p-5 flex items-center justify-between sm:col-span-2">
+        <div
+          class="card-surface p-5 flex items-center justify-between sm:col-span-2"
+        >
           <div class="space-y-1">
             <p class="text-sm text-slate-500">Metodología</p>
             <p class="font-semibold">Healthcheck real con token + perfil /me</p>
-            <p class="text-xs text-slate-500">Progreso hacia el entregable de autenticación y contexto de empresa.</p>
+            <p class="text-xs text-slate-500">
+              Progreso hacia el entregable de autenticación y contexto de
+              empresa.
+            </p>
           </div>
-          <span class="badge bg-emerald-100 text-emerald-700" id="session-status">Bloqueado</span>
+          <span
+            class="badge bg-emerald-100 text-emerald-700"
+            id="session-status">Bloqueado</span
+          >
         </div>
-        <div class="card-surface p-5 space-y-4 sm:col-span-2" id="documents-panel">
+        <div
+          class="card-surface p-5 space-y-4 sm:col-span-2"
+          id="documents-panel"
+        >
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="text-sm text-slate-500">Repositorio documental</p>
-              <h2 class="text-xl font-semibold text-ink">Documentos disponibles</h2>
-              <p class="text-xs text-slate-500">Consulta inicial limitada: lista y detalle del primer documento.</p>
+              <h2 class="text-xl font-semibold text-ink">
+                Documentos disponibles
+              </h2>
+              <p class="text-xs text-slate-500">
+                Consulta inicial limitada: lista y detalle del primer documento.
+              </p>
             </div>
-            <span class="badge bg-amber-100 text-amber-700" id="documents-badge">Protegido</span>
+            <span class="badge bg-amber-100 text-amber-700" id="documents-badge"
+              >Protegido</span
+            >
           </div>
           <div class="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
             <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <p class="text-sm text-slate-500">Listado (GET /documents)</p>
-                <span class="badge bg-slate-100 text-slate-700" id="documents-count">0 docs</span>
+                <span
+                  class="badge bg-slate-100 text-slate-700"
+                  id="documents-count">0 docs</span
+                >
               </div>
               <div
                 id="documents-list"
                 class="space-y-2 max-h-80 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-white"
               >
-                <p class="text-sm text-slate-500 px-3 py-2">A la espera de la sesión activa...</p>
+                <p class="text-sm text-slate-500 px-3 py-2">
+                  A la espera de la sesión activa...
+                </p>
               </div>
             </div>
             <div class="space-y-3">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-slate-500">Detalle (GET /documents/:id)</p>
-                  <p class="font-semibold text-ink" id="document-title">Sin documento cargado</p>
+                  <p class="text-sm text-slate-500">
+                    Detalle (GET /documents/:id)
+                  </p>
+                  <p class="font-semibold text-ink" id="document-title">
+                    Sin documento cargado
+                  </p>
                 </div>
-                <span class="badge bg-slate-100 text-slate-700" id="document-status">—</span>
+                <span
+                  class="badge bg-slate-100 text-slate-700"
+                  id="document-status">—</span
+                >
               </div>
-              <div class="card-surface border border-slate-200 space-y-2" id="document-detail">
-                <p class="text-sm text-slate-600" id="document-description">Cuando haya sesión, cargaremos el primer documento.</p>
+              <div
+                class="card-surface border border-slate-200 space-y-2"
+                id="document-detail"
+              >
+                <p class="text-sm text-slate-600" id="document-description">
+                  Cuando haya sesión, cargaremos el primer documento.
+                </p>
                 <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
                   <div>
                     <p class="text-xs uppercase text-slate-500">Código</p>
@@ -138,7 +196,9 @@ const documentsEndpoint = `${API_URL}/documents`;
                     <p id="document-owner">—</p>
                   </div>
                   <div>
-                    <p class="text-xs uppercase text-slate-500">Versión actual</p>
+                    <p class="text-xs uppercase text-slate-500">
+                      Versión actual
+                    </p>
                     <p id="document-version">—</p>
                   </div>
                   <div>
@@ -172,6 +232,7 @@ const documentsEndpoint = `${API_URL}/documents`;
   <script type="module">
     import { fetchProfile, logout } from "../services/auth";
     import { fetchDocumentDetail, fetchDocuments } from "../services/documents";
+    import { clearSessionTokens } from "../services/httpClient";
 
     const ACCESS_TOKEN_KEY = "accessToken";
     const PROFILE_STORAGE_KEY = "profile";
@@ -199,7 +260,9 @@ const documentsEndpoint = `${API_URL}/documents`;
     const documentCategory = document.getElementById("document-category");
     const documentOwner = document.getElementById("document-owner");
     const documentVersion = document.getElementById("document-version");
-    const documentVersionStatus = document.getElementById("document-version-status");
+    const documentVersionStatus = document.getElementById(
+      "document-version-status",
+    );
     const documentStatus = document.getElementById("document-status");
     const documentTags = document.getElementById("document-tags");
     const documentLink = document.getElementById("document-link");
@@ -240,9 +303,10 @@ const documentsEndpoint = `${API_URL}/documents`;
     };
 
     const clearSession = () => {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(PROFILE_STORAGE_KEY);
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+      sessionStorage.removeItem(PROFILE_STORAGE_KEY);
+      clearSessionTokens();
     };
 
     const lockContent = () => {
@@ -266,7 +330,7 @@ const documentsEndpoint = `${API_URL}/documents`;
 
     const renderWelcome = (profile) => {
       if (!welcomeMessage || !profile) return;
-      welcomeMessage.textContent = `Bienvenido ${profile.full_name || "usuario"} ���. El panel ya está desbloqueado.`;
+      welcomeMessage.textContent = `Bienvenido ${profile.full_name || "usuario"} ���. El panel ya está desbloqueado.`;
     };
 
     const renderProfile = (profile) => {
@@ -276,7 +340,10 @@ const documentsEndpoint = `${API_URL}/documents`;
       profileRole && (profileRole.textContent = profile.role ?? "auth");
       profileCompany && (profileCompany.textContent = profile.company_id);
       profileId && (profileId.textContent = profile.id);
-      profileCreated && (profileCreated.textContent = new Date(profile.created_at).toLocaleString());
+      profileCreated &&
+        (profileCreated.textContent = new Date(
+          profile.created_at,
+        ).toLocaleString());
       renderWelcome(profile);
     };
 
@@ -297,7 +364,8 @@ const documentsEndpoint = `${API_URL}/documents`;
       if (!documentTags) return;
       documentTags.innerHTML = "";
       if (!tags.length) {
-        documentTags.innerHTML = '<span class="text-xs text-slate-500">Sin etiquetas</span>';
+        documentTags.innerHTML =
+          '<span class="text-xs text-slate-500">Sin etiquetas</span>';
         return;
       }
       tags.forEach((tag) => {
@@ -313,7 +381,9 @@ const documentsEndpoint = `${API_URL}/documents`;
 
       if (!document) {
         documentTitle.textContent = "Sin documento cargado";
-        documentDescription && (documentDescription.textContent = "Todavía no se ha podido obtener información.");
+        documentDescription &&
+          (documentDescription.textContent =
+            "Todavía no se ha podido obtener información.");
         documentCode && (documentCode.textContent = "—");
         documentType && (documentType.textContent = "—");
         documentCategory && (documentCategory.textContent = "—");
@@ -331,17 +401,24 @@ const documentsEndpoint = `${API_URL}/documents`;
       }
 
       const currentVersion = document.currentVersion;
-      const externalUrl = currentVersion?.external_url || currentVersion?.file_url;
+      const externalUrl =
+        currentVersion?.external_url || currentVersion?.file_url;
 
       documentTitle.textContent = document.title || "Documento";
       documentDescription &&
-        (documentDescription.textContent = document.description || "Documento sin descripción disponible en la API.");
+        (documentDescription.textContent =
+          document.description ||
+          "Documento sin descripción disponible en la API.");
       documentCode && (documentCode.textContent = document.code || "—");
       documentType && (documentType.textContent = document.type || "—");
-      documentCategory && (documentCategory.textContent = document.category || "—");
+      documentCategory &&
+        (documentCategory.textContent = document.category || "—");
       documentOwner && (documentOwner.textContent = document.owner || "—");
-      documentVersion && (documentVersion.textContent = currentVersion?.version || "Sin versión");
-      documentVersionStatus && (documentVersionStatus.textContent = currentVersion?.status || "—");
+      documentVersion &&
+        (documentVersion.textContent =
+          currentVersion?.version || "Sin versión");
+      documentVersionStatus &&
+        (documentVersionStatus.textContent = currentVersion?.status || "—");
 
       documentStatus.textContent = document.active ? "Activo" : "Inactivo";
       documentStatus.className = document.active
@@ -361,13 +438,14 @@ const documentsEndpoint = `${API_URL}/documents`;
       }
     };
 
-    const renderDocumentsList = (documents = [], token) => {
+    const renderDocumentsList = (documents = []) => {
       if (!documentsList || !documentsCount) return;
       documentsList.innerHTML = "";
       documentsCount.textContent = `${documents.length} docs`;
 
       if (!documents.length) {
-        documentsList.innerHTML = '<p class="text-sm text-slate-500 px-3 py-2">Sin documentos disponibles.</p>';
+        documentsList.innerHTML =
+          '<p class="text-sm text-slate-500 px-3 py-2">Sin documentos disponibles.</p>';
         renderDocumentDetail(null);
         return;
       }
@@ -389,9 +467,7 @@ const documentsEndpoint = `${API_URL}/documents`;
         `;
 
         button.addEventListener("click", () => {
-          if (token) {
-            loadDocumentDetail(doc.id, token);
-          }
+          loadDocumentDetail(doc.id);
         });
 
         if (index === 0) {
@@ -402,7 +478,7 @@ const documentsEndpoint = `${API_URL}/documents`;
       });
     };
 
-    const loadDocumentDetail = async (documentId, token) => {
+    const loadDocumentDetail = async (documentId) => {
       if (!documentId || !documentsEndpoint) return;
       setDocumentsBadge("Detalle", "pending");
 
@@ -412,7 +488,10 @@ const documentsEndpoint = `${API_URL}/documents`;
         renderDocumentDetail(data);
         setDocumentsBadge("Sincronizado", "success");
       } catch (error) {
-        const message = error instanceof Error ? error.message : "No se pudo obtener el documento";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "No se pudo obtener el documento";
         await showAlert({
           title: "Error al cargar el documento",
           text: message,
@@ -422,22 +501,25 @@ const documentsEndpoint = `${API_URL}/documents`;
       }
     };
 
-    const loadDocuments = async (token) => {
-      if (!documentsEndpoint || !token) return;
+    const loadDocuments = async () => {
+      if (!documentsEndpoint) return;
       setDocumentsBadge("Cargando", "pending");
       documentsCount && (documentsCount.textContent = "0 docs");
       documentsLoaded = false;
 
       try {
-        const { data } = await fetchDocuments(documentsEndpoint, token);
-        renderDocumentsList(data, token);
+        const { data } = await fetchDocuments(documentsEndpoint);
+        renderDocumentsList(data);
         if (data?.length) {
-          await loadDocumentDetail(data[0].id, token);
+          await loadDocumentDetail(data[0].id);
         }
         setDocumentsBadge("Disponible", "success");
         documentsLoaded = true;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "No se pudo obtener los documentos";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "No se pudo obtener los documentos";
         await showAlert({
           title: "No se pudo obtener el listado",
           text: message,
@@ -448,23 +530,26 @@ const documentsEndpoint = `${API_URL}/documents`;
       }
     };
 
-    const onSessionReady = async (profile, token) => {
+    const onSessionReady = async (profile) => {
       renderProfile(profile);
       unlockContent();
-      if (token && !documentsLoaded) {
-        await loadDocuments(token);
+      if (!documentsLoaded && sessionStorage.getItem(ACCESS_TOKEN_KEY)) {
+        await loadDocuments();
       }
     };
 
-    const loadProfileFromServer = async (token) => {
-      if (!token || !profileEndpoint) return null;
-      const response = await fetchProfile(profileEndpoint, token);
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(response.data));
+    const loadProfileFromServer = async () => {
+      if (!profileEndpoint) return null;
+      const response = await fetchProfile(profileEndpoint);
+      sessionStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify(response.data),
+      );
       return response.data;
     };
 
     const hydrateFromLocal = () => {
-      const cachedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+      const cachedProfile = sessionStorage.getItem(PROFILE_STORAGE_KEY);
       if (cachedProfile) {
         try {
           return JSON.parse(cachedProfile);
@@ -476,7 +561,7 @@ const documentsEndpoint = `${API_URL}/documents`;
     };
 
     const checkSession = async () => {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
       if (!token) {
         redirectToLogin();
         return;
@@ -484,17 +569,20 @@ const documentsEndpoint = `${API_URL}/documents`;
 
       const cachedProfile = hydrateFromLocal();
       if (cachedProfile) {
-        await onSessionReady(cachedProfile, token);
+        await onSessionReady(cachedProfile);
       }
 
       try {
-        const profile = await loadProfileFromServer(token);
+        const profile = await loadProfileFromServer();
         if (profile) {
-          await onSessionReady(profile, token);
+          await onSessionReady(profile);
         }
       } catch (error) {
         console.error("Sesión inválida", error);
-        const message = error instanceof Error ? error.message : "No se pudo validar la sesión";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "No se pudo validar la sesión";
         await showAlert({
           title: "Sesión expirada",
           text: message,
@@ -509,14 +597,14 @@ const documentsEndpoint = `${API_URL}/documents`;
     window.addEventListener("session:login", async (event) => {
       const detail = event.detail || {};
       if (detail.profile) {
-        await onSessionReady(detail.profile, detail.accessToken);
+        await onSessionReady(detail.profile);
       }
 
       if (detail.accessToken) {
         try {
-          const refreshedProfile = await loadProfileFromServer(detail.accessToken);
+          const refreshedProfile = await loadProfileFromServer();
           if (refreshedProfile) {
-            await onSessionReady(refreshedProfile, detail.accessToken);
+            await onSessionReady(refreshedProfile);
           }
         } catch (error) {
           console.error("No se pudo refrescar el perfil tras login", error);
@@ -526,7 +614,7 @@ const documentsEndpoint = `${API_URL}/documents`;
 
     const handleLogout = async () => {
       if (!logoutButton) return;
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
 
       if (!token) {
         clearSession();
@@ -545,10 +633,11 @@ const documentsEndpoint = `${API_URL}/documents`;
       logoutButton.textContent = "Cerrando sesión...";
 
       try {
-        await logout(logoutEndpoint, token);
+        await logout(logoutEndpoint);
       } catch (error) {
         console.error("No se pudo cerrar sesión", error);
-        const message = error instanceof Error ? error.message : "No se pudo cerrar sesión";
+        const message =
+          error instanceof Error ? error.message : "No se pudo cerrar sesión";
         await showAlert({
           title: "Cierre de sesión incompleto",
           text: message,
@@ -562,6 +651,6 @@ const documentsEndpoint = `${API_URL}/documents`;
 
     logoutButton?.addEventListener("click", handleLogout);
 
-    checkSession();
+    window.addEventListener("DOMContentLoaded", checkSession);
   </script>
 </Layout>

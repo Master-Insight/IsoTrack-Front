@@ -1,5 +1,5 @@
-import axios, { AxiosError } from "axios";
-import { API_URL } from "../consts";
+import axios, { type AxiosError } from "axios";
+import httpClient from "./httpClient";
 
 export type DocumentVersion = {
   id: string;
@@ -60,13 +60,6 @@ export type DocumentDetailResponse = {
   data: DocumentRecord;
 };
 
-const http = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
 function getErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string }>;
@@ -75,16 +68,9 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-export async function fetchDocuments(
-  endpoint: string,
-  accessToken: string,
-): Promise<DocumentListResponse> {
+export async function fetchDocuments(endpoint: string): Promise<DocumentListResponse> {
   try {
-    const { data } = await http.get<DocumentListResponse>(endpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const { data } = await httpClient.get<DocumentListResponse>(endpoint);
     return data;
   } catch (error) {
     const message = getErrorMessage(error, "No se pudo obtener los documentos");
@@ -92,16 +78,9 @@ export async function fetchDocuments(
   }
 }
 
-export async function fetchDocumentDetail(
-  endpoint: string,
-  accessToken: string,
-): Promise<DocumentDetailResponse> {
+export async function fetchDocumentDetail(endpoint: string): Promise<DocumentDetailResponse> {
   try {
-    const { data } = await http.get<DocumentDetailResponse>(endpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const { data } = await httpClient.get<DocumentDetailResponse>(endpoint);
     return data;
   } catch (error) {
     const message = getErrorMessage(error, "No se pudo obtener el documento");

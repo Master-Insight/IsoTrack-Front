@@ -1,5 +1,10 @@
-import axios, { AxiosError } from "axios";
-import { API_URL } from "../consts";
+import axios, { type AxiosError } from "axios";
+import httpClient, {
+  clearSessionTokens,
+  refreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "./httpClient";
 
 export type LoginPayload = {
   email: string;
@@ -40,13 +45,6 @@ export type LogoutResponse = {
   };
 };
 
-const http = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
 function getErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string }>;
@@ -55,9 +53,26 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+export function persistTokens(accessToken?: string, refresh_token?: string) {
+  if (accessToken?.startsWith("eyJ")) {
+    setAccessToken(accessToken);
+  }
+  if (refresh_token?.startsWith("eyJ")) {
+    setRefreshToken(refresh_token);
+  }
+}
+
 export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
   try {
-    const { data } = await http.post<LoginResponse>(endpoint, payload);
+    const { data } = await httpClient.post<LoginResponse>(endpoint, payload, {
+      withCredentials: true,
+    });
+
+    if (data?.data) {
+      const { accessToken, refresh_token } = data.data;
+      persistTokens(accessToken, refresh_token);
+    }
+
     return data;
   } catch (error) {
     const message = getErrorMessage(error, "No se pudo iniciar sesión");
@@ -65,13 +80,9 @@ export async function login(endpoint: string, payload: LoginPayload): Promise<Lo
   }
 }
 
-export async function fetchProfile(endpoint: string, accessToken: string): Promise<ProfileResponse> {
+export async function fetchProfile(endpoint: string): Promise<ProfileResponse> {
   try {
-    const { data } = await http.get<ProfileResponse>(endpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const { data } = await httpClient.get<ProfileResponse>(endpoint);
     return data;
   } catch (error) {
     const message = getErrorMessage(error, "No se pudo obtener el perfil");
@@ -79,16 +90,22 @@ export async function fetchProfile(endpoint: string, accessToken: string): Promi
   }
 }
 
-export async function logout(endpoint: string, accessToken: string): Promise<LogoutResponse> {
+export async function logout(endpoint: string): Promise<LogoutResponse> {
   try {
-    const { data } = await http.post<LogoutResponse>(endpoint, undefined, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const { data } = await httpClient.post<LogoutResponse>(endpoint);
+    clearSessionTokens();
     return data;
   } catch (error) {
     const message = getErrorMessage(error, "No se pudo cerrar sesión");
     throw new Error(message);
+  }
+}
+
+export async function ensureToken() {
+  try {
+    return await refreshToken();
+  } catch (error) {
+    clearSessionTokens();
+    throw error;
   }
 }

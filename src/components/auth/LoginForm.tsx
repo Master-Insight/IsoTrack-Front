@@ -1,14 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from "../../consts";
 import type { LoginPayload, UserProfile } from "../../services/auth";
-import { fetchProfile, login } from "../../services/auth";
+import { fetchProfile, login, persistTokens } from "../../services/auth";
 
 const loginEndpoint = `${API_URL}/users/login`;
 const profileEndpoint = `${API_URL}/users/me`;
 
 const PROFILE_STORAGE_KEY = "profile";
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
 
 const initialPayload: LoginPayload = {
   email: DEFAULT_USER.email,
@@ -67,10 +65,10 @@ export default function LoginForm() {
   };
 
   const persistProfile = async (accessToken: string) => {
-    if (!accessToken) return;
+    if (!accessToken?.startsWith("eyJ")) return;
     try {
-      const profileResponse = await fetchProfile(profileEndpoint, accessToken);
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileResponse.data));
+      const profileResponse = await fetchProfile(profileEndpoint);
+      sessionStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileResponse.data));
       emitLogin({ profile: profileResponse.data, accessToken });
     } catch (error) {
       console.error("No se pudo obtener el perfil", error);
@@ -90,9 +88,8 @@ export default function LoginForm() {
 
       if (response.success && response.data) {
         const { accessToken, refresh_token, profile } = response.data;
-        localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-        localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+        persistTokens(accessToken, refresh_token);
+        sessionStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
 
         emitLogin({ profile, accessToken });
         await persistProfile(accessToken);

@@ -258,12 +258,12 @@ const documentsEndpoint = `${API_URL}/documents`;
       });
     };
 
-    const loadDocumentDetail = async (documentId, token) => {
+    const loadDocumentDetail = async (documentId) => {
       if (!documentId || !documentsEndpoint) return;
 
       try {
         const detailEndpoint = `${documentsEndpoint}/${documentId}`;
-        const { data } = await fetchDocumentDetail(detailEndpoint, token);
+        const { data } = await fetchDocumentDetail(detailEndpoint);
         renderDocumentDetail(data);
       } catch (error) {
         const message = error instanceof Error ? error.message : "No se pudo obtener el documento";
@@ -276,15 +276,15 @@ const documentsEndpoint = `${API_URL}/documents`;
       }
     };
 
-    const loadDocuments = async (token) => {
-      if (!documentsEndpoint || !token) return;
+    const loadDocuments = async () => {
+      if (!documentsEndpoint) return;
       if (documentsCount) documentsCount.textContent = "0 docs";
 
       try {
-        const { data } = await fetchDocuments(documentsEndpoint, token);
-        renderDocumentsList(data, token);
+        const { data } = await fetchDocuments(documentsEndpoint);
+        renderDocumentsList(data);
         if (data?.length) {
-          await loadDocumentDetail(data[0].id, token);
+          await loadDocumentDetail(data[0].id);
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : "No se pudo obtener los documentos";
@@ -298,7 +298,7 @@ const documentsEndpoint = `${API_URL}/documents`;
     };
 
     const hydrateProfile = () => {
-      const cachedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+      const cachedProfile = sessionStorage.getItem(PROFILE_STORAGE_KEY);
       if (!cachedProfile) return null;
       try {
         return JSON.parse(cachedProfile);
@@ -309,7 +309,7 @@ const documentsEndpoint = `${API_URL}/documents`;
     };
 
     const checkSession = async () => {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
       if (!token) {
         await showAlert({
           title: "Sesión requerida",
@@ -329,7 +329,7 @@ const documentsEndpoint = `${API_URL}/documents`;
         });
       }
 
-      await loadDocuments(token);
+      await loadDocuments();
     };
 
     checkSession();
