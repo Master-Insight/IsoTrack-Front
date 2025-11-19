@@ -1,6 +1,6 @@
 # IsoTrack · Fase 1.2
 
-Landing con autenticación obligatoria contra FastAPI. Se usa Astro + Tailwind 4.
+Landing con autenticación obligatoria contra FastAPI. Se usa Astro + Tailwind 4 con **islas React** para manejar la sesión y Axios como cliente HTTP.
 
 ## Requisitos previos
 
@@ -20,7 +20,7 @@ pnpm dev
 ## Flujo de autenticación
 
 1. Navegá a `/login` y usá las credenciales prellenadas del usuario root.
-2. El login hace `POST {base_url}/users/login` y guarda `accessToken`, `refreshToken` y el perfil en `localStorage`.
+2. El login ahora es un componente React que usa Axios y hace `POST {base_url}/users/login`, guardando `accessToken`, `refreshToken` y el perfil en `localStorage`.
 3. Si ya estás autenticado, `/login` redirige automáticamente al índice.
 4. El índice (`/`) requiere sesión: sin token te redirige a `/login` y bloquea el contenido protegido.
 5. Desde el índice podés cerrar sesión con el botón **Cerrar sesión**, que ejecuta `POST {base_url}/users/logout` y limpia el almacenamiento antes de volver al login.
