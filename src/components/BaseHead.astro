@@ -1,0 +1,20 @@
+---
+import "/styles/global.css";
+import { APP_NAME } from "../consts";
+const {
+  title = APP_NAME,
+  description = "Portal de calidad IsoTrack con Astro + Radix",
+  ogImage = "/assets/isotrack-logo-horizontal.svg",
+} = Astro.props;
+---
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <link rel="icon" type="image/svg+xml" href="/assets/isotrack-icon.svg" />
+</head>

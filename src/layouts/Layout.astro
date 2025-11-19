@@ -1,5 +1,79 @@
 ---
-// import "/styles/global.css";
+import BaseHead from "../components/BaseHead.astro";
+import { APP_NAME, DEFAULT_COMPANY, NAV_ITEMS } from "../consts";
+const { title = APP_NAME, description = "Stack base IsoTrack" } = Astro.props;
 ---
 
-<slot />
+<html lang="es" class="bg-slate-50">
+  <BaseHead title={title} description={description} />
+  <body class="min-h-screen text-ink bg-slate-50">
+    <div class="min-h-screen grid lg:grid-cols-[280px_1fr]">
+      <aside class="hidden lg:flex flex-col bg-ink text-paper px-6 py-8 gap-6">
+        <div class="flex items-center gap-3">
+          <img src="/assets/isotrack-logo-horizontal.svg" alt="IsoTrack" class="h-9" />
+        </div>
+        <div class="space-y-1">
+          <p class="text-sm uppercase tracking-wide text-slate-300">Empresa activa</p>
+          <div class="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+            <div class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-bold">
+              {DEFAULT_COMPANY.name.charAt(0)}
+            </div>
+            <div>
+              <p class="font-semibold">{DEFAULT_COMPANY.name}</p>
+              <p class="text-xs text-slate-300">ID: {DEFAULT_COMPANY.id.slice(0, 8)}...</p>
+            </div>
+          </div>
+        </div>
+        <nav class="space-y-2">
+          {NAV_ITEMS.map((item) => (
+            <a
+              class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/10 transition-colors"
+              href={item.href}
+            >
+              <span class="font-medium">{item.label}</span>
+              {item.badge && <span class="badge bg-white/10 text-white border border-white/10">{item.badge}</span>}
+            </a>
+          ))}
+        </nav>
+        <div class="mt-auto space-y-3 text-sm text-slate-300">
+          <p class="font-semibold text-white">Conexiones</p>
+          <div class="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+            <span>FastAPI</span>
+            <span class="badge bg-green-500/20 text-green-100">Listo</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+            <span>Supabase</span>
+            <span class="badge bg-emerald-500/20 text-emerald-100">Link</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="flex flex-col">
+        <header class="sticky-header">
+          <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex items-center gap-3">
+              <button class="inline-flex lg:hidden items-center rounded-lg border border-slate-200 px-3 py-2">☰</button>
+              <div>
+                <p class="text-xs uppercase text-slate-500">Fase 1.1 · MVP</p>
+                <p class="font-semibold text-lg">{title}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="hidden sm:flex items-center gap-3 px-3 py-2 rounded-lg border border-slate-200 bg-white">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+                <span class="text-sm text-slate-700">Supabase conectado</span>
+              </div>
+              <div class="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+                {DEFAULT_COMPANY.name.charAt(0)}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="p-6 lg:p-8">
+          <slot />
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
