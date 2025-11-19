@@ -1,7 +1,51 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/LoginForm.astro";
+import { DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
 ---
 
-<Layout>
-  <div class="bg-amber-800">TEST VERDE 🟩</div>
+<Layout
+  title="IsoTrack · Fase 1.1"
+  description="Stack base con login a FastAPI + Supabase"
+>
+  <div class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] items-start">
+    <section class="card-surface p-8 space-y-6">
+      <header class="space-y-3">
+        <p class="badge bg-primary/10 text-primary">Astro + Radix MVP</p>
+        <h1 class="text-3xl font-bold text-ink">
+          Stack base listo para la Fase 1.1
+        </h1>
+        <p class="text-slate-600">
+          Layout general con sidebar de branding, cabecera con estado de
+          conexión y formulario de login sin datos mock.
+        </p>
+      </header>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="card-surface p-5 space-y-2">
+          <p class="text-sm text-slate-500">Empresa activa</p>
+          <p class="font-semibold text-lg">{DEFAULT_COMPANY.name}</p>
+          <p class="text-xs text-slate-500">{DEFAULT_COMPANY.id}</p>
+        </div>
+        <div class="card-surface p-5 space-y-2">
+          <p class="text-sm text-slate-500">Supabase URL</p>
+          <p class="font-semibold break-all text-primary">{SUPABASE_URL}</p>
+          <p class="text-xs text-slate-500">
+            Configurable por entorno VITE/PUBLIC.
+          </p>
+        </div>
+      </div>
+      <div class="card-surface p-5 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-sm text-slate-500">Metodología</p>
+          <p class="font-semibold">Features MVP con Astro + Radix primitives</p>
+          <p class="text-xs text-slate-500">
+            Listo para extender con componentes UI y flujos de onboarding.
+          </p>
+        </div>
+        <span class="badge bg-emerald-100 text-emerald-700">Healthcheck</span>
+      </div>
+    </section>
+
+    <LoginForm />
+  </div>
 </Layout>
