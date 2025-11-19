@@ -27,6 +27,31 @@ export default function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
+  let swalPromise: Promise<any> | null = null;
+
+  const loadSwal = async () => {
+    if (!swalPromise) {
+      swalPromise = import("https://cdn.jsdelivr.net/npm/sweetalert2@11");
+    }
+    const module = await swalPromise;
+    return module.default;
+  };
+
+  const showAlert = async ({ title, text, icon = "info" }) => {
+    try {
+      const Swal = await loadSwal();
+      await Swal.fire({
+        title,
+        text,
+        icon,
+        confirmButtonColor: "#2563eb",
+      });
+    } catch (error) {
+      console.error("No se pudo mostrar SweetAlert2", error);
+      alert(`${title}: ${text}`);
+    }
+  };
+
   const isDisabled = useMemo(() => {
     return isSubmitting || !payload.email || !payload.password;
   }, [isSubmitting, payload.email, payload.password]);
@@ -71,12 +96,22 @@ export default function LoginForm() {
 
         emitLogin({ profile, accessToken });
         await persistProfile(accessToken);
+        await showAlert({
+          title: "Sesión validada",
+          text: "Redirigiendo al panel principal...",
+          icon: "success",
+        });
         setPreview(JSON.stringify(response.data, null, 2));
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo iniciar sesión";
       setStatus(message);
       setStatusVariant("error");
+      await showAlert({
+        title: "Error de autenticación",
+        text: message,
+        icon: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }

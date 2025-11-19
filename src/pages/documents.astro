@@ -1,0 +1,337 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { API_URL } from "../consts";
+
+const documentsEndpoint = `${API_URL}/documents`;
+---
+
+<Layout
+  title="IsoTrack · Documentos"
+  description="Ruta protegida para listar y revisar documentos"
+>
+  <section
+    class="card-surface p-8 space-y-6 relative overflow-hidden"
+    data-documents-endpoint={documentsEndpoint}
+  >
+    <header class="space-y-3">
+      <p class="badge bg-primary/10 text-primary">Zona protegida</p>
+      <h1 class="text-3xl font-bold text-ink">Repositorio documental</h1>
+      <p class="text-slate-600">
+        Esta vista requiere que hayas iniciado sesión en <span class="font-semibold">/login</span>.
+        Si la sesión existe, listaremos los documentos y abriremos el primero automáticamente.
+      </p>
+      <div class="flex gap-3 flex-wrap">
+        <a class="button-secondary" href="/">Volver al panel principal</a>
+        <a class="button-primary" href="/login">Ir al login</a>
+      </div>
+    </header>
+
+    <div class="grid gap-6 md:grid-cols-[1.05fr_0.95fr]">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-500">Listado (GET /documents)</p>
+            <h2 class="text-xl font-semibold text-ink">Documentos disponibles</h2>
+          </div>
+          <span id="documents-count" class="badge bg-slate-100 text-slate-700">0 docs</span>
+        </div>
+        <div
+          id="documents-list"
+          class="space-y-2 max-h-96 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-white"
+        >
+          <p class="text-sm text-slate-500 px-3 py-2">Requiere sesión activa...</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-500">Detalle (GET /documents/:id)</p>
+            <p id="document-title" class="font-semibold text-ink">Sin documento cargado</p>
+          </div>
+          <span id="document-status" class="badge bg-slate-100 text-slate-700">—</span>
+        </div>
+        <div class="card-surface border border-slate-200 space-y-2" id="document-detail">
+          <p class="text-sm text-slate-600" id="document-description">Esperando sesión para cargar el documento.</p>
+          <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
+            <div>
+              <p class="text-xs uppercase text-slate-500">Código</p>
+              <p id="document-code">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Tipo</p>
+              <p id="document-type">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Categoría</p>
+              <p id="document-category">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Propietario</p>
+              <p id="document-owner">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Versión</p>
+              <p id="document-version">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Estado versión</p>
+              <p id="document-version-status">—</p>
+            </div>
+          </div>
+          <div class="space-y-1 text-sm text-slate-600">
+            <p class="text-xs uppercase text-slate-500">Etiquetas</p>
+            <div id="document-tags" class="flex flex-wrap gap-2"></div>
+          </div>
+          <a
+            id="document-link"
+            class="button-secondary inline-flex justify-center items-center gap-2 w-full"
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abrir recurso externo
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { fetchDocumentDetail, fetchDocuments } from "../services/documents";
+
+    const ACCESS_TOKEN_KEY = "accessToken";
+    const PROFILE_STORAGE_KEY = "profile";
+
+    const documentsPanel = document.querySelector("[data-documents-endpoint]");
+    const documentsEndpoint = documentsPanel?.dataset.documentsEndpoint;
+
+    const documentsCount = document.getElementById("documents-count");
+    const documentsList = document.getElementById("documents-list");
+    const documentTitle = document.getElementById("document-title");
+    const documentDescription = document.getElementById("document-description");
+    const documentCode = document.getElementById("document-code");
+    const documentType = document.getElementById("document-type");
+    const documentCategory = document.getElementById("document-category");
+    const documentOwner = document.getElementById("document-owner");
+    const documentVersion = document.getElementById("document-version");
+    const documentVersionStatus = document.getElementById("document-version-status");
+    const documentStatus = document.getElementById("document-status");
+    const documentTags = document.getElementById("document-tags");
+    const documentLink = document.getElementById("document-link");
+
+    let swalPromise;
+
+    const loadSwal = async () => {
+      if (!swalPromise) {
+        swalPromise = import("https://cdn.jsdelivr.net/npm/sweetalert2@11");
+      }
+      const module = await swalPromise;
+      return module.default;
+    };
+
+    const showAlert = async ({ title, text, icon = "info" }) => {
+      try {
+        const Swal = await loadSwal();
+        await Swal.fire({
+          title,
+          text,
+          icon,
+          confirmButtonColor: "#2563eb",
+        });
+      } catch (error) {
+        console.error("No se pudo mostrar SweetAlert2", error);
+        alert(`${title}: ${text}`);
+      }
+    };
+
+    const redirectToLogin = () => {
+      window.location.href = "/login";
+    };
+
+    const renderTags = (tags = []) => {
+      if (!documentTags) return;
+      documentTags.innerHTML = "";
+      if (!tags.length) {
+        documentTags.innerHTML = '<span class="text-xs text-slate-500">Sin etiquetas</span>';
+        return;
+      }
+      tags.forEach((tag) => {
+        const badge = document.createElement("span");
+        badge.className = "badge bg-slate-100 text-slate-700";
+        badge.textContent = tag;
+        documentTags.appendChild(badge);
+      });
+    };
+
+    const renderDocumentDetail = (document) => {
+      if (!documentTitle || !documentStatus) return;
+
+      if (!document) {
+        documentTitle.textContent = "Sin documento cargado";
+        documentDescription && (documentDescription.textContent = "No pudimos obtener información.");
+        documentCode && (documentCode.textContent = "—");
+        documentType && (documentType.textContent = "—");
+        documentCategory && (documentCategory.textContent = "—");
+        documentOwner && (documentOwner.textContent = "—");
+        documentVersion && (documentVersion.textContent = "—");
+        documentVersionStatus && (documentVersionStatus.textContent = "—");
+        documentStatus.textContent = "—";
+        documentStatus.className = "badge bg-slate-100 text-slate-700";
+        renderTags([]);
+        if (documentLink) {
+          documentLink.href = "#";
+          documentLink.classList.add("opacity-60", "pointer-events-none");
+        }
+        return;
+      }
+
+      const currentVersion = document.currentVersion;
+      const externalUrl = currentVersion?.external_url || currentVersion?.file_url;
+
+      documentTitle.textContent = document.title || "Documento";
+      documentDescription &&
+        (documentDescription.textContent = document.description || "Documento sin descripción disponible en la API.");
+      documentCode && (documentCode.textContent = document.code || "—");
+      documentType && (documentType.textContent = document.type || "—");
+      documentCategory && (documentCategory.textContent = document.category || "—");
+      documentOwner && (documentOwner.textContent = document.owner || "—");
+      documentVersion && (documentVersion.textContent = currentVersion?.version || "Sin versión");
+      documentVersionStatus && (documentVersionStatus.textContent = currentVersion?.status || "—");
+
+      documentStatus.textContent = document.active ? "Activo" : "Inactivo";
+      documentStatus.className = document.active
+        ? "badge bg-emerald-100 text-emerald-700"
+        : "badge bg-slate-200 text-slate-700";
+
+      renderTags(document.tags || []);
+
+      if (documentLink) {
+        if (externalUrl) {
+          documentLink.href = externalUrl;
+          documentLink.classList.remove("opacity-60", "pointer-events-none");
+        } else {
+          documentLink.href = "#";
+          documentLink.classList.add("opacity-60", "pointer-events-none");
+        }
+      }
+    };
+
+    const renderDocumentsList = (documents = [], token) => {
+      if (!documentsList || !documentsCount) return;
+      documentsList.innerHTML = "";
+      documentsCount.textContent = `${documents.length} docs`;
+
+      if (!documents.length) {
+        documentsList.innerHTML = '<p class="text-sm text-slate-500 px-3 py-2">Sin documentos disponibles.</p>';
+        renderDocumentDetail(null);
+        return;
+      }
+
+      documents.forEach((doc, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className =
+          "w-full text-left px-3 py-3 rounded-lg border border-slate-200 hover:border-primary/60 hover:bg-primary/5 transition-colors";
+        button.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <p class="font-semibold text-ink">${doc.title}</p>
+              <p class="text-xs text-slate-500">${doc.code}</p>
+            </div>
+            <span class="badge bg-slate-100 text-slate-700">${doc.currentVersion?.version || "Sin versión"}</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1 line-clamp-2">${doc.description || "Documento sin descripción"}</p>
+        `;
+
+        button.addEventListener("click", () => {
+          if (token) {
+            loadDocumentDetail(doc.id, token);
+          }
+        });
+
+        if (index === 0) {
+          button.classList.add("border-primary/60", "bg-primary/5");
+        }
+
+        documentsList.appendChild(button);
+      });
+    };
+
+    const loadDocumentDetail = async (documentId, token) => {
+      if (!documentId || !documentsEndpoint) return;
+
+      try {
+        const detailEndpoint = `${documentsEndpoint}/${documentId}`;
+        const { data } = await fetchDocumentDetail(detailEndpoint, token);
+        renderDocumentDetail(data);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "No se pudo obtener el documento";
+        await showAlert({
+          title: "Error al cargar el documento",
+          text: message,
+          icon: "error",
+        });
+        renderDocumentDetail(null);
+      }
+    };
+
+    const loadDocuments = async (token) => {
+      if (!documentsEndpoint || !token) return;
+      if (documentsCount) documentsCount.textContent = "0 docs";
+
+      try {
+        const { data } = await fetchDocuments(documentsEndpoint, token);
+        renderDocumentsList(data, token);
+        if (data?.length) {
+          await loadDocumentDetail(data[0].id, token);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "No se pudo obtener los documentos";
+        await showAlert({
+          title: "Listado no disponible",
+          text: message,
+          icon: "error",
+        });
+        renderDocumentDetail(null);
+      }
+    };
+
+    const hydrateProfile = () => {
+      const cachedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (!cachedProfile) return null;
+      try {
+        return JSON.parse(cachedProfile);
+      } catch (error) {
+        console.error("No se pudo parsear el perfil en caché", error);
+        return null;
+      }
+    };
+
+    const checkSession = async () => {
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      if (!token) {
+        await showAlert({
+          title: "Sesión requerida",
+          text: "Te redirigimos a /login para que ingreses antes de consultar documentos.",
+          icon: "warning",
+        });
+        redirectToLogin();
+        return;
+      }
+
+      const profile = hydrateProfile();
+      if (profile?.full_name) {
+        await showAlert({
+          title: "Bienvenido nuevamente",
+          text: `${profile.full_name}, cargaremos tus documentos disponibles.`,
+          icon: "success",
+        });
+      }
+
+      await loadDocuments(token);
+    };
+
+    checkSession();
+  </script>
+</Layout>
