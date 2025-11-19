@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import LoginForm from "../components/auth/LoginForm.astro";
+import LoginForm from "../components/auth/LoginForm";
 
 const title = "Iniciar sesión en IsoTrack";
 ---
@@ -20,7 +20,7 @@ const title = "Iniciar sesión en IsoTrack";
       </ul>
     </section>
 
-    <LoginForm />
+    <LoginForm client:load />
   </div>
 
   <script type="module">

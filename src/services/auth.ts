@@ -1,3 +1,6 @@
+import axios, { AxiosError } from "axios";
+import { API_URL } from "../consts";
+
 export type LoginPayload = {
   email: string;
   password: string;
@@ -37,51 +40,55 @@ export type LogoutResponse = {
   };
 };
 
-export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+const http = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || "No se pudo iniciar sesión");
+function getErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    return axiosError.response?.data?.message || axiosError.message || fallback;
   }
+  return error instanceof Error ? error.message : fallback;
+}
 
-  return (await response.json()) as LoginResponse;
+export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
+  try {
+    const { data } = await http.post<LoginResponse>(endpoint, payload);
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo iniciar sesión");
+    throw new Error(message);
+  }
 }
 
 export async function fetchProfile(endpoint: string, accessToken: string): Promise<ProfileResponse> {
-  const response = await fetch(endpoint, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || "No se pudo obtener el perfil");
+  try {
+    const { data } = await http.get<ProfileResponse>(endpoint, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo obtener el perfil");
+    throw new Error(message);
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function logout(endpoint: string, accessToken: string): Promise<LogoutResponse> {
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || "No se pudo cerrar sesión");
+  try {
+    const { data } = await http.post<LogoutResponse>(endpoint, undefined, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo cerrar sesión");
+    throw new Error(message);
   }
-
-  return (await response.json()) as LogoutResponse;
 }
