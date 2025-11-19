@@ -4,6 +4,7 @@ import LoginForm from "../components/auth/LoginForm.astro";
 import { API_URL, DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
 
 const profileEndpoint = `${API_URL}/users/me`;
+const logoutEndpoint = `${API_URL}/users/logout`;
 ---
 
 <Layout
@@ -15,6 +16,7 @@ const profileEndpoint = `${API_URL}/users/me`;
       id="protected-area"
       class="card-surface p-8 space-y-6 relative overflow-hidden"
       data-profile-endpoint={profileEndpoint}
+      data-logout-endpoint={logoutEndpoint}
     >
       <div
         id="lock-overlay"
@@ -33,6 +35,10 @@ const profileEndpoint = `${API_URL}/users/me`;
           autentique contra FastAPI.
         </p>
       </header>
+
+      <div class="flex items-center justify-end">
+        <button id="logout-button" class="button-secondary" type="button">Cerrar sesión</button>
+      </div>
 
       <div class="grid sm:grid-cols-2 gap-4" id="locked-content">
         <div class="card-surface p-5 space-y-2">
@@ -84,10 +90,11 @@ const profileEndpoint = `${API_URL}/users/me`;
   </div>
 
   <script type="module">
-    import { fetchProfile } from "../services/auth";
+    import { fetchProfile, logout } from "../services/auth";
 
     const ACCESS_TOKEN_KEY = "accessToken";
     const PROFILE_STORAGE_KEY = "profile";
+    const REFRESH_TOKEN_KEY = "refreshToken";
 
     const overlay = document.getElementById("lock-overlay");
     const protectedArea = document.getElementById("protected-area");
@@ -101,6 +108,18 @@ const profileEndpoint = `${API_URL}/users/me`;
     const profileCreated = document.getElementById("profile-created");
 
     const profileEndpoint = protectedArea?.dataset.profileEndpoint;
+    const logoutEndpoint = protectedArea?.dataset.logoutEndpoint;
+    const logoutButton = document.getElementById("logout-button");
+
+    const redirectToLogin = () => {
+      window.location.href = "/login";
+    };
+
+    const clearSession = () => {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(PROFILE_STORAGE_KEY);
+    };
 
     const lockContent = () => {
       overlay?.classList.remove("hidden");
@@ -152,7 +171,7 @@ const profileEndpoint = `${API_URL}/users/me`;
     const checkSession = async () => {
       const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       if (!token) {
-        lockContent();
+        redirectToLogin();
         return;
       }
 
@@ -170,9 +189,9 @@ const profileEndpoint = `${API_URL}/users/me`;
         }
       } catch (error) {
         console.error("Sesión inválida", error);
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(PROFILE_STORAGE_KEY);
+        clearSession();
         lockContent();
+        redirectToLogin();
       }
     };
 
@@ -195,6 +214,38 @@ const profileEndpoint = `${API_URL}/users/me`;
         }
       }
     });
+
+    const handleLogout = async () => {
+      if (!logoutButton) return;
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+
+      if (!token) {
+        clearSession();
+        redirectToLogin();
+        return;
+      }
+
+      if (!logoutEndpoint) {
+        console.error("No se configuró el endpoint de logout");
+        clearSession();
+        redirectToLogin();
+        return;
+      }
+
+      logoutButton.disabled = true;
+      logoutButton.textContent = "Cerrando sesión...";
+
+      try {
+        await logout(logoutEndpoint, token);
+      } catch (error) {
+        console.error("No se pudo cerrar sesión", error);
+      } finally {
+        clearSession();
+        redirectToLogin();
+      }
+    };
+
+    logoutButton?.addEventListener("click", handleLogout);
 
     checkSession();
   </script>

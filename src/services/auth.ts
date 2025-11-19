@@ -29,6 +29,14 @@ export type ProfileResponse = {
   data: UserProfile;
 };
 
+export type LogoutResponse = {
+  success: boolean;
+  message: string;
+  data?: {
+    status: string;
+  };
+};
+
 export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
   const response = await fetch(endpoint, {
     method: "POST",
@@ -59,4 +67,21 @@ export async function fetchProfile(endpoint: string, accessToken: string): Promi
   }
 
   return (await response.json()) as ProfileResponse;
+}
+
+export async function logout(endpoint: string, accessToken: string): Promise<LogoutResponse> {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || "No se pudo cerrar sesión");
+  }
+
+  return (await response.json()) as LogoutResponse;
 }
