@@ -1,26 +1,40 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import LoginForm from "../components/auth/LoginForm.astro";
-import { DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
+import { API_URL, DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
+
+const profileEndpoint = `${API_URL}/users/me`;
 ---
 
 <Layout
-  title="IsoTrack · Fase 1.1"
-  description="Stack base con login a FastAPI + Supabase"
+  title="IsoTrack · Fase 1.2"
+  description="Autenticación obligatoria con perfil raíz de la empresa"
 >
   <div class="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] items-start">
-    <section class="card-surface p-8 space-y-6">
+    <section
+      id="protected-area"
+      class="card-surface p-8 space-y-6 relative overflow-hidden"
+      data-profile-endpoint={profileEndpoint}
+    >
+      <div
+        id="lock-overlay"
+        class="absolute inset-0 bg-white/80 backdrop-blur-sm border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-center"
+        role="presentation"
+      >
+        <p class="text-sm text-slate-600">Debes iniciar sesión para ver la información de la empresa</p>
+        <p class="text-xs text-slate-500">Sin registro disponible · Usa las credenciales provistas</p>
+      </div>
+
       <header class="space-y-3">
-        <p class="badge bg-primary/10 text-primary">Astro + Radix MVP</p>
-        <h1 class="text-3xl font-bold text-ink">
-          Stack base listo para la Fase 1.1
-        </h1>
+        <p class="badge bg-primary/10 text-primary">Astro + Radix · Auth requerida</p>
+        <h1 class="text-3xl font-bold text-ink">Fase 1.2 en curso</h1>
         <p class="text-slate-600">
-          Layout general con sidebar de branding, cabecera con estado de
-          conexión y formulario de login sin datos mock.
+          La landing ahora valida sesión real: si no hay token, el contenido queda bloqueado hasta que el usuario root se
+          autentique contra FastAPI.
         </p>
       </header>
-      <div class="grid sm:grid-cols-2 gap-4">
+
+      <div class="grid sm:grid-cols-2 gap-4" id="locked-content">
         <div class="card-surface p-5 space-y-2">
           <p class="text-sm text-slate-500">Empresa activa</p>
           <p class="font-semibold text-lg">{DEFAULT_COMPANY.name}</p>
@@ -29,23 +43,159 @@ import { DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
         <div class="card-surface p-5 space-y-2">
           <p class="text-sm text-slate-500">Supabase URL</p>
           <p class="font-semibold break-all text-primary">{SUPABASE_URL}</p>
-          <p class="text-xs text-slate-500">
-            Configurable por entorno VITE/PUBLIC.
-          </p>
+          <p class="text-xs text-slate-500">Configurable por entorno VITE/PUBLIC.</p>
         </div>
-      </div>
-      <div class="card-surface p-5 flex items-center justify-between">
-        <div class="space-y-1">
-          <p class="text-sm text-slate-500">Metodología</p>
-          <p class="font-semibold">Features MVP con Astro + Radix primitives</p>
-          <p class="text-xs text-slate-500">
-            Listo para extender con componentes UI y flujos de onboarding.
-          </p>
+        <div class="card-surface p-5 space-y-3 sm:col-span-2" id="profile-card">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-slate-500">Usuario autenticado</p>
+              <p id="profile-name" class="font-semibold text-lg">Pendiente de autenticación</p>
+              <p id="profile-email" class="text-xs text-slate-500">---</p>
+            </div>
+            <span class="badge bg-emerald-100 text-emerald-700" id="profile-role">Sin sesión</span>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-3 text-sm text-slate-600" id="profile-meta">
+            <div>
+              <p class="text-xs uppercase text-slate-500">Company ID</p>
+              <p id="profile-company">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Usuario ID</p>
+              <p id="profile-id">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Creado</p>
+              <p id="profile-created">—</p>
+            </div>
+          </div>
         </div>
-        <span class="badge bg-emerald-100 text-emerald-700">Healthcheck</span>
+        <div class="card-surface p-5 flex items-center justify-between sm:col-span-2">
+          <div class="space-y-1">
+            <p class="text-sm text-slate-500">Metodología</p>
+            <p class="font-semibold">Healthcheck real con token + perfil /me</p>
+            <p class="text-xs text-slate-500">Progreso hacia el entregable de autenticación y contexto de empresa.</p>
+          </div>
+          <span class="badge bg-emerald-100 text-emerald-700" id="session-status">Bloqueado</span>
+        </div>
       </div>
     </section>
 
     <LoginForm />
   </div>
+
+  <script type="module">
+    import { fetchProfile } from "../services/auth";
+
+    const ACCESS_TOKEN_KEY = "accessToken";
+    const PROFILE_STORAGE_KEY = "profile";
+
+    const overlay = document.getElementById("lock-overlay");
+    const protectedArea = document.getElementById("protected-area");
+    const statusBadge = document.getElementById("session-status");
+
+    const profileName = document.getElementById("profile-name");
+    const profileEmail = document.getElementById("profile-email");
+    const profileRole = document.getElementById("profile-role");
+    const profileCompany = document.getElementById("profile-company");
+    const profileId = document.getElementById("profile-id");
+    const profileCreated = document.getElementById("profile-created");
+
+    const profileEndpoint = protectedArea?.dataset.profileEndpoint;
+
+    const lockContent = () => {
+      overlay?.classList.remove("hidden");
+      protectedArea?.classList.add("pointer-events-none", "opacity-80");
+      if (statusBadge) {
+        statusBadge.textContent = "Bloqueado";
+        statusBadge.className = "badge bg-amber-100 text-amber-700";
+      }
+    };
+
+    const unlockContent = () => {
+      overlay?.classList.add("hidden");
+      protectedArea?.classList.remove("pointer-events-none", "opacity-80");
+      if (statusBadge) {
+        statusBadge.textContent = "Sesión activa";
+        statusBadge.className = "badge bg-emerald-100 text-emerald-700";
+      }
+    };
+
+    const renderProfile = (profile) => {
+      if (!profile) return;
+      profileName && (profileName.textContent = profile.full_name || "Usuario");
+      profileEmail && (profileEmail.textContent = profile.email);
+      profileRole && (profileRole.textContent = profile.role ?? "auth");
+      profileCompany && (profileCompany.textContent = profile.company_id);
+      profileId && (profileId.textContent = profile.id);
+      profileCreated && (profileCreated.textContent = new Date(profile.created_at).toLocaleString());
+    };
+
+    const loadProfileFromServer = async (token) => {
+      if (!token || !profileEndpoint) return null;
+      const response = await fetchProfile(profileEndpoint, token);
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(response.data));
+      return response.data;
+    };
+
+    const hydrateFromLocal = () => {
+      const cachedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (cachedProfile) {
+        try {
+          return JSON.parse(cachedProfile);
+        } catch (error) {
+          console.error("No se pudo parsear el perfil en caché", error);
+        }
+      }
+      return null;
+    };
+
+    const checkSession = async () => {
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      if (!token) {
+        lockContent();
+        return;
+      }
+
+      const cachedProfile = hydrateFromLocal();
+      if (cachedProfile) {
+        renderProfile(cachedProfile);
+        unlockContent();
+      }
+
+      try {
+        const profile = await loadProfileFromServer(token);
+        if (profile) {
+          renderProfile(profile);
+          unlockContent();
+        }
+      } catch (error) {
+        console.error("Sesión inválida", error);
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(PROFILE_STORAGE_KEY);
+        lockContent();
+      }
+    };
+
+    window.addEventListener("session:login", async (event) => {
+      const detail = event.detail || {};
+      if (detail.profile) {
+        renderProfile(detail.profile);
+        unlockContent();
+      }
+
+      if (detail.accessToken) {
+        try {
+          const refreshedProfile = await loadProfileFromServer(detail.accessToken);
+          if (refreshedProfile) {
+            renderProfile(refreshedProfile);
+            unlockContent();
+          }
+        } catch (error) {
+          console.error("No se pudo refrescar el perfil tras login", error);
+        }
+      }
+    });
+
+    checkSession();
+  </script>
 </Layout>
