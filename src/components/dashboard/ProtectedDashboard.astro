@@ -1,0 +1,196 @@
+---
+type Company = {
+  id: string;
+  name: string;
+  theme?: string;
+  brandLogo?: string;
+};
+
+interface Props {
+  profileEndpoint: string;
+  logoutEndpoint: string;
+  documentsEndpoint: string;
+  company: Company;
+  supabaseUrl: string;
+}
+
+const {
+  profileEndpoint,
+  logoutEndpoint,
+  documentsEndpoint,
+  company,
+  supabaseUrl,
+} = Astro.props as Props;
+---
+<section
+  id="protected-area"
+  class="card-surface p-8 space-y-6 relative overflow-hidden border border-slate-200"
+  data-profile-endpoint={profileEndpoint}
+  data-logout-endpoint={logoutEndpoint}
+  data-documents-endpoint={documentsEndpoint}
+>
+  <div
+    id="lock-overlay"
+    class="absolute inset-0 bg-white/85 backdrop-blur-sm border border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-center"
+    role="presentation"
+  >
+    <p class="text-sm text-slate-700 font-semibold">Contenido protegido</p>
+    <p class="text-xs text-slate-500 max-w-sm">
+      Inicia sesión para desbloquear los datos de tu compañía y el repositorio documental.
+    </p>
+  </div>
+
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div class="space-y-2">
+      <p class="badge bg-primary/10 text-primary">Sesión requerida</p>
+      <h2 class="text-2xl font-bold text-ink">Bienvenida y contexto de empresa</h2>
+      <p class="text-slate-600 max-w-2xl">
+        Validamos el token, guardamos el perfil y mostramos el listado inicial de documentos protegido por la API.
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="badge bg-amber-100 text-amber-700" id="session-status">Bloqueado</span>
+      <button id="logout-button" class="button-secondary" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="grid md:grid-cols-3 gap-4" id="locked-content">
+    <div class="card-surface p-5 space-y-2 border border-slate-200">
+      <p class="text-sm text-slate-500">Empresa activa</p>
+      <p class="font-semibold text-lg">{company.name}</p>
+      <p class="text-xs text-slate-500">{company.id}</p>
+    </div>
+    <div class="card-surface p-5 space-y-2 border border-slate-200">
+      <p class="text-sm text-slate-500">Supabase URL</p>
+      <p class="font-semibold break-all text-primary">{supabaseUrl}</p>
+      <p class="text-xs text-slate-500">Configuración expuesta por entorno público.</p>
+    </div>
+    <div class="card-surface p-5 space-y-2 border border-slate-200 bg-primary/5">
+      <p class="text-sm text-primary font-semibold">Estado de la integración</p>
+      <p class="text-sm text-primary/80">
+        Healthcheck con token + perfil /me, persistencia en sessionStorage y feedback visual inmediato.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-surface p-5 space-y-4 border border-slate-200" id="profile-card">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="text-sm text-slate-500">Usuario autenticado</p>
+        <p id="profile-name" class="font-semibold text-lg">Pendiente de autenticación</p>
+        <p id="profile-email" class="text-xs text-slate-500">---</p>
+      </div>
+      <span class="badge bg-emerald-100 text-emerald-700" id="profile-role">Sin sesión</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-3 text-sm text-slate-600" id="profile-meta">
+      <div>
+        <p class="text-xs uppercase text-slate-500">Company ID</p>
+        <p id="profile-company">—</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase text-slate-500">Usuario ID</p>
+        <p id="profile-id">—</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase text-slate-500">Creado</p>
+        <p id="profile-created">—</p>
+      </div>
+    </div>
+    <div
+      class="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 text-sm text-primary"
+      id="welcome-message"
+    >
+      Te daremos la bienvenida apenas se valide tu sesión.
+    </div>
+  </div>
+
+  <div class="card-surface p-5 flex items-center justify-between border border-slate-200">
+    <div class="space-y-1">
+      <p class="text-sm text-slate-500">Metodología</p>
+      <p class="font-semibold">Sincronización guiada</p>
+      <p class="text-xs text-slate-500">
+        Validamos autenticación, desbloqueamos panel y traemos el primer documento disponible.
+      </p>
+    </div>
+    <span class="badge bg-amber-100 text-amber-700" id="documents-badge">Protegido</span>
+  </div>
+
+  <div class="card-surface p-5 space-y-4 border border-slate-200" id="documents-panel">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="text-sm text-slate-500">Repositorio documental</p>
+        <h3 class="text-xl font-semibold text-ink">Documentos disponibles</h3>
+        <p class="text-xs text-slate-500">
+          Lista protegida + detalle del primer documento al ingresar.
+        </p>
+      </div>
+      <span class="badge bg-slate-100 text-slate-700" id="documents-count">0 docs</span>
+    </div>
+    <div class="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-slate-500">Listado (GET /documents)</p>
+        </div>
+        <div
+          id="documents-list"
+          class="space-y-2 max-h-80 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-white"
+        >
+          <p class="text-sm text-slate-500 px-3 py-2">A la espera de la sesión activa...</p>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-500">Detalle (GET /documents/:id)</p>
+            <p class="font-semibold text-ink" id="document-title">Sin documento cargado</p>
+          </div>
+          <span class="badge bg-slate-100 text-slate-700" id="document-status">—</span>
+        </div>
+        <div class="card-surface border border-slate-200 space-y-2" id="document-detail">
+          <p class="text-sm text-slate-600" id="document-description">
+            Cuando haya sesión, cargaremos el primer documento.
+          </p>
+          <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
+            <div>
+              <p class="text-xs uppercase text-slate-500">Código</p>
+              <p id="document-code">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Tipo</p>
+              <p id="document-type">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Categoría</p>
+              <p id="document-category">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Propietario</p>
+              <p id="document-owner">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Versión actual</p>
+              <p id="document-version">—</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase text-slate-500">Estado</p>
+              <p id="document-version-status">—</p>
+            </div>
+          </div>
+          <div class="space-y-1 text-sm text-slate-600">
+            <p class="text-xs uppercase text-slate-500">Etiquetas</p>
+            <div id="document-tags" class="flex flex-wrap gap-2"></div>
+          </div>
+          <a
+            id="document-link"
+            class="button-secondary inline-flex justify-center items-center gap-2 w-full"
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abrir recurso externo
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
