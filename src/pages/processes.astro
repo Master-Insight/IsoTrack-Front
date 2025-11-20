@@ -1,0 +1,20 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ProcessesPage from "../components/processes/ProcessesPage";
+import { API_URL } from "../consts";
+
+const processesEndpoint = `${API_URL}/processes`;
+const linksEndpoint = `${API_URL}/processes`;
+const documentsEndpoint = `${API_URL}/documents`;
+const tasksEndpoint = `${API_URL}/tasks`;
+---
+
+<Layout title="IsoTrack · Procesos" description="Listado, detalle y vínculos de procesos y tareas">
+  <ProcessesPage
+    processesEndpoint={processesEndpoint}
+    linksEndpoint={linksEndpoint}
+    documentsEndpoint={documentsEndpoint}
+    tasksEndpoint={tasksEndpoint}
+    client:load
+  />
+</Layout>
