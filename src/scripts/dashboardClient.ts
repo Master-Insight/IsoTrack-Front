@@ -5,29 +5,11 @@ import {
   type DocumentRecord,
 } from "../services/documents";
 import { clearSessionTokens } from "../services/httpClient";
+import { showAlert } from "./alerts";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const PROFILE_STORAGE_KEY = "profile";
 const REFRESH_TOKEN_KEY = "refreshToken";
-
-const alertOptions = {
-  confirmButtonColor: "#2563eb",
-};
-
-async function loadSwal() {
-  const { default: Swal } = await import("https://cdn.jsdelivr.net/npm/sweetalert2@11");
-  return Swal;
-}
-
-async function showAlert({ title, text, icon = "info" }: { title: string; text: string; icon?: string }) {
-  try {
-    const Swal = await loadSwal();
-    await Swal.fire({ title, text, icon, ...alertOptions });
-  } catch (error) {
-    console.error("No se pudo mostrar SweetAlert2", error);
-    alert(`${title}: ${text}`);
-  }
-}
 
 function redirectToLogin() {
   window.location.href = "/login";
