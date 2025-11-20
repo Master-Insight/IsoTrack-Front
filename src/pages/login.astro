@@ -1,0 +1,46 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/LoginForm";
+
+const title = "Iniciar sesión en IsoTrack";
+---
+
+<Layout title={title} description="Pantalla de login con validación de sesión">
+  <div class="grid gap-8 xl:grid-cols-[1.2fr_0.8fr] items-start">
+    <section class="card-surface p-8 space-y-4">
+      <p class="badge bg-primary/10 text-primary">Control de acceso</p>
+      <h1 class="text-3xl font-bold text-ink">{title}</h1>
+      <p class="text-slate-600">
+        Si ya tenés sesión activa con el usuario raíz de la empresa, serás redirigido al panel principal.
+      </p>
+      <ul class="list-disc list-inside text-slate-600 space-y-1 text-sm">
+        <li>Credenciales predeterminadas disponibles en el formulario.</li>
+        <li>El acceso protegido requiere token almacenado en el navegador.</li>
+        <li>Tras autenticarte, volverás automáticamente al inicio.</li>
+      </ul>
+    </section>
+
+    <LoginForm client:load />
+  </div>
+
+  <script type="module">
+    const ACCESS_TOKEN_KEY = "accessToken";
+
+    const redirectToHome = () => {
+      window.location.replace("/");
+    };
+
+    const validateExistingSession = () => {
+      const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
+      if (token) {
+        redirectToHome();
+      }
+    };
+
+    window.addEventListener("session:login", () => {
+      redirectToHome();
+    });
+
+    validateExistingSession();
+  </script>
+</Layout>

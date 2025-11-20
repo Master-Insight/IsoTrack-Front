@@ -1,3 +1,11 @@
+import axios, { type AxiosError } from "axios";
+import httpClient, {
+  clearSessionTokens,
+  refreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "./httpClient";
+
 export type LoginPayload = {
   email: string;
   password: string;
@@ -9,31 +17,95 @@ export type LoginResponse = {
   data?: {
     accessToken: string;
     refresh_token: string;
-    profile: {
-      email: string;
-      company_id: string;
-      full_name: string;
-      position: string | null;
-      id: string;
-      role: string;
-      created_at: string;
-    };
+    profile: UserProfile;
   };
 };
 
-export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+export type UserProfile = {
+  email: string;
+  company_id: string;
+  full_name: string;
+  position: string | null;
+  id: string;
+  role: string;
+  created_at: string;
+};
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || "No se pudo iniciar sesión");
+export type ProfileResponse = {
+  success: boolean;
+  message: string;
+  data: UserProfile;
+};
+
+export type LogoutResponse = {
+  success: boolean;
+  message: string;
+  data?: {
+    status: string;
+  };
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    return axiosError.response?.data?.message || axiosError.message || fallback;
   }
+  return error instanceof Error ? error.message : fallback;
+}
 
-  return (await response.json()) as LoginResponse;
+export function persistTokens(accessToken?: string, refresh_token?: string) {
+  if (accessToken?.startsWith("eyJ")) {
+    setAccessToken(accessToken);
+  }
+  if (refresh_token?.startsWith("eyJ")) {
+    setRefreshToken(refresh_token);
+  }
+}
+
+export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
+  try {
+    const { data } = await httpClient.post<LoginResponse>(endpoint, payload, {
+      withCredentials: true,
+    });
+
+    if (data?.data) {
+      const { accessToken, refresh_token } = data.data;
+      persistTokens(accessToken, refresh_token);
+    }
+
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo iniciar sesión");
+    throw new Error(message);
+  }
+}
+
+export async function fetchProfile(endpoint: string): Promise<ProfileResponse> {
+  try {
+    const { data } = await httpClient.get<ProfileResponse>(endpoint);
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo obtener el perfil");
+    throw new Error(message);
+  }
+}
+
+export async function logout(endpoint: string): Promise<LogoutResponse> {
+  try {
+    const { data } = await httpClient.post<LogoutResponse>(endpoint);
+    clearSessionTokens();
+    return data;
+  } catch (error) {
+    const message = getErrorMessage(error, "No se pudo cerrar sesión");
+    throw new Error(message);
+  }
+}
+
+export async function ensureToken() {
+  try {
+    return await refreshToken();
+  } catch (error) {
+    clearSessionTokens();
+    throw error;
+  }
 }
