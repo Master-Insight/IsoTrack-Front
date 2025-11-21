@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from "../../consts";
 import type { LoginPayload, UserProfile } from "../../services/auth";
 import { fetchProfile, login, persistTokens } from "../../services/auth";
+import { showAlert } from "../../scripts/alerts";
 
 const loginEndpoint = `${API_URL}/users/login`;
 const profileEndpoint = `${API_URL}/users/me`;
@@ -24,31 +25,6 @@ export default function LoginForm() {
   const [statusVariant, setStatusVariant] = useState<"neutral" | "success" | "error">("neutral");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
-
-  let swalPromise: Promise<any> | null = null;
-
-  const loadSwal = async () => {
-    if (!swalPromise) {
-      swalPromise = import("https://cdn.jsdelivr.net/npm/sweetalert2@11");
-    }
-    const module = await swalPromise;
-    return module.default;
-  };
-
-  const showAlert = async ({ title, text, icon = "info" }) => {
-    try {
-      const Swal = await loadSwal();
-      await Swal.fire({
-        title,
-        text,
-        icon,
-        confirmButtonColor: "#2563eb",
-      });
-    } catch (error) {
-      console.error("No se pudo mostrar SweetAlert2", error);
-      alert(`${title}: ${text}`);
-    }
-  };
 
   const isDisabled = useMemo(() => {
     return isSubmitting || !payload.email || !payload.password;
