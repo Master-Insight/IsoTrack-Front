@@ -267,6 +267,8 @@ export default function ProcessesPage({
 
   const tasks = selectedProcess?.tasks || [];
   const linkedDocuments = selectedProcess?.documents || [];
+  const totalTasks = processes.reduce((acc, process) => acc + (process.tasks?.length || 0), 0);
+  const totalLinkedDocs = processes.reduce((acc, process) => acc + (process.documents?.length || 0), 0);
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -422,7 +424,7 @@ export default function ProcessesPage({
   );
 
   return (
-    <section className="card-surface p-8 space-y-6 relative overflow-hidden">
+    <section className="space-y-6 relative">
       <ArtifactModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -433,32 +435,60 @@ export default function ProcessesPage({
         tasks={tasks}
       />
 
-      <header className="space-y-3">
-        <p className="badge bg-primary/10 text-primary">Fase 1.4 · Procesos y tareas</p>
-        <h1 className="text-3xl font-bold text-ink">Procesos operativos</h1>
-        <p className="text-slate-600">
-          Consulta procesos, edita el estado de sus tareas y conecta artefactos relacionados mediante la matriz de vínculos.
-        </p>
-        <div className="flex gap-3 flex-wrap">
-          <a className="button-secondary" href="/">
-            Volver al panel principal
-          </a>
-          <button className="button-primary" type="button" onClick={() => setIsModalOpen(true)}>
-            Gestionar vínculos
-          </button>
+      <div className="card-surface relative overflow-hidden bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-6 md:p-8 text-white shadow-xl">
+        <div className="absolute inset-0 bg-white/10 blur-3xl" aria-hidden="true"></div>
+        <div className="absolute right-6 top-6 h-20 w-20 rounded-full border border-white/30 bg-white/5" aria-hidden="true"></div>
+        <div className="relative flex flex-col gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-2 max-w-3xl">
+              <p className="text-[11px] tracking-[0.35em] uppercase text-white/70">Fase 1.4 · Procesos y tareas</p>
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight">Procesos operativos y vínculos cruzados</h1>
+              <p className="text-white/80 text-sm md:text-base">
+                Consulta el catálogo de procesos, edita tareas en línea y conecta documentos o diagramas mediante artifact_links.
+              </p>
+            </div>
+            <div className="text-right space-y-2">
+              <p className="text-xs uppercase text-white/70">Contexto</p>
+              <p className="text-2xl font-semibold flex items-center gap-2 justify-end">
+                {processes.length} procesos
+                <span className="badge bg-white/20 text-white border border-white/30">{totalTasks} tareas</span>
+              </p>
+              <p className="text-white/70 text-xs max-w-xs">Documentos vinculados: {totalLinkedDocs}</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 text-sm">
+            <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 shadow-sm">
+              <p className="text-xs uppercase text-white/70">Matriz de vínculos</p>
+              <p className="text-2xl font-semibold flex items-center gap-2">
+                {links.length}
+                <span className="badge bg-emerald-500/20 text-emerald-50 border border-emerald-100/30">activos</span>
+              </p>
+              <p className="text-white/70 text-xs">process ↔ task ↔ document</p>
+            </div>
+            <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 shadow-sm">
+              <p className="text-xs uppercase text-white/70">Tareas</p>
+              <p className="text-2xl font-semibold">{tasks.length}</p>
+              <p className="text-white/70 text-xs">del proceso seleccionado</p>
+            </div>
+            <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 shadow-sm">
+              <p className="text-xs uppercase text-white/70">Documentos</p>
+              <p className="text-2xl font-semibold">{linkedDocuments.length}</p>
+              <p className="text-white/70 text-xs">vinculados al detalle</p>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_1.05fr]">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+        <div className="card-surface border border-slate-200 shadow-lg overflow-hidden">
+          <div className="flex items-center justify-between gap-3 bg-slate-50 px-5 py-4 border-b border-slate-200">
             <div>
-              <p className="text-sm text-slate-500">Listado (GET /processes)</p>
-              <h2 className="text-xl font-semibold text-ink">Procesos disponibles</h2>
+              <p className="text-xs uppercase text-slate-500">Listado (GET /processes)</p>
+              <h2 className="text-lg font-semibold text-ink">Procesos disponibles</h2>
             </div>
             <span className="badge bg-slate-100 text-slate-700">{processes.length} proc</span>
           </div>
-          <div className="space-y-2 max-h-[540px] overflow-y-auto p-1 border border-slate-200 rounded-xl bg-white">
+          <div className="space-y-2 max-h-[540px] overflow-y-auto p-1">
             {isLoadingList && <p className="text-sm text-slate-500 px-3 py-2">Cargando procesos...</p>}
             {!isLoadingList && !processes.length && (
               <p className="text-sm text-slate-500 px-3 py-2">Sin procesos disponibles.</p>
@@ -468,7 +498,7 @@ export default function ProcessesPage({
                 <button
                   key={process.id}
                   type="button"
-                  className={`w-full text-left px-3 py-3 rounded-lg border transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
                     process.id === selectedId
                       ? "border-primary/60 bg-primary/5"
                       : "border-slate-200 hover:border-primary/60 hover:bg-primary/5"
@@ -489,53 +519,55 @@ export default function ProcessesPage({
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Detalle (GET /processes/:id)</p>
-              <p className="font-semibold text-ink">{selectedProcess?.name || "Sin proceso cargado"}</p>
+          <div className="card-surface border border-slate-200 shadow-lg">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+              <div>
+                <p className="text-xs uppercase text-slate-500">Detalle (GET /processes/:id)</p>
+                <p className="font-semibold text-ink">{selectedProcess?.name || "Sin proceso cargado"}</p>
+              </div>
+              <StatusBadge status={selectedProcess?.maturity || "Pendiente"} />
             </div>
-            <StatusBadge status={selectedProcess?.maturity || "Pendiente"} />
-          </div>
-          <div className="card-surface border border-slate-200 space-y-3">
-            {isLoadingDetail && <p className="text-sm text-slate-600">Cargando detalle del proceso...</p>}
-            {!isLoadingDetail && (
-              <>
-                <p className="text-sm text-slate-600">{selectedProcess?.description || "Selecciona un proceso para ver detalle."}</p>
-                <div className="grid grid-cols-2 gap-3 text-sm text-slate-600">
-                  <div>
-                    <p className="text-xs uppercase text-slate-500">Código</p>
-                    <p>{selectedProcess?.code || "—"}</p>
+            <div className="p-5 space-y-3">
+              {isLoadingDetail && <p className="text-sm text-slate-600">Cargando detalle del proceso...</p>}
+              {!isLoadingDetail && (
+                <>
+                  <p className="text-sm text-slate-600">{selectedProcess?.description || "Selecciona un proceso para ver detalle."}</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm text-slate-600">
+                    <div>
+                      <p className="text-xs uppercase text-slate-500">Código</p>
+                      <p>{selectedProcess?.code || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-slate-500">Responsable</p>
+                      <p>{selectedProcess?.owner || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-slate-500">Entradas</p>
+                      <p>{selectedProcess?.inputs?.join(", ") || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase text-slate-500">Salidas</p>
+                      <p>{selectedProcess?.outputs?.join(", ") || "—"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs uppercase text-slate-500">Responsable</p>
-                    <p>{selectedProcess?.owner || "—"}</p>
+                  <div className="space-y-1 text-sm text-slate-600">
+                    <p className="text-xs uppercase text-slate-500">Documentos vinculados</p>
+                    {documentBadges}
                   </div>
-                  <div>
-                    <p className="text-xs uppercase text-slate-500">Entradas</p>
-                    <p>{selectedProcess?.inputs?.join(", ") || "—"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase text-slate-500">Salidas</p>
-                    <p>{selectedProcess?.outputs?.join(", ") || "—"}</p>
-                  </div>
-                </div>
-                <div className="space-y-1 text-sm text-slate-600">
-                  <p className="text-xs uppercase text-slate-500">Documentos vinculados</p>
-                  {documentBadges}
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="card-surface border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="card-surface border border-slate-200 shadow-lg">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <div>
-                <p className="text-sm text-slate-500">Tareas del proceso</p>
+                <p className="text-xs uppercase text-slate-500">Tareas del proceso</p>
                 <h3 className="text-lg font-semibold text-ink">Subvista editable</h3>
               </div>
               <span className="badge bg-slate-100 text-slate-700">{tasks.length} tareas</span>
             </div>
-            <div className="space-y-3">
+            <div className="p-5 space-y-3">
               {isLoadingDetail && <p className="text-sm text-slate-500">Cargando tareas...</p>}
               {!isLoadingDetail && !tasks.length && <p className="text-sm text-slate-500">Sin tareas asociadas.</p>}
               {!isLoadingDetail &&
@@ -543,17 +575,19 @@ export default function ProcessesPage({
             </div>
           </div>
 
-          <div className="card-surface border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="card-surface border border-slate-200 shadow-lg">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <div>
-                <p className="text-sm text-slate-500">Matriz de vínculos</p>
+                <p className="text-xs uppercase text-slate-500">Matriz de vínculos</p>
                 <h3 className="text-lg font-semibold text-ink">artifact_links</h3>
               </div>
               <button className="button-secondary" type="button" onClick={() => setIsModalOpen(true)}>
-                Añadir vínculo
+                Gestionar vínculos
               </button>
             </div>
-            <ArtifactLinkList links={links} onRemove={handleRemoveLink} />
+            <div className="p-5">
+              <ArtifactLinkList links={links} onRemove={handleRemoveLink} />
+            </div>
           </div>
         </div>
       </div>
