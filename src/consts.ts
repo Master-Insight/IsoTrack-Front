@@ -22,5 +22,5 @@ export const NAV_ITEMS = [
   { label: "Inicio", href: "/" },
   { label: "Documentos", href: "/documents", badge: "F1.3" },
   { label: "Procesos", href: "/processes", badge: "F1.4" },
-  { label: "Diagramas", href: "/diagrams", badge: "Pronto" },
+  { label: "Diagramas", href: "/diagrams", badge: "F1.5" },
 ];
