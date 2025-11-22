@@ -1,8 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import LoginForm from "../components/auth/LoginForm";
 import HeroSection from "../components/dashboard/HeroSection.astro";
 import ProtectedDashboard from "../components/dashboard/ProtectedDashboard.astro";
+import IntegrationPanel from "../components/integration/IntegrationPanel";
 import { API_URL, DEFAULT_COMPANY, SUPABASE_URL } from "../consts";
 
 const profileEndpoint = `${API_URL}/users/me`;
@@ -11,11 +11,25 @@ const documentsEndpoint = `${API_URL}/documents`;
 ---
 
 <Layout
-  title="IsoTrack · Fase 1.4"
-  description="Autenticación obligatoria, bienvenida y vistas iniciales de documentos, procesos y tareas"
+  title="IsoTrack · Fase 1.6"
+  description="Integración y migración: panel protegido, importadores y smoke tests end-to-end"
 >
   <div class="space-y-8">
-    <HeroSection />
+    <HeroSection
+      title="Panel listo para integración"
+      subtitle="Fase 1.6 · Datos consolidados"
+      description="Valida sesión, sincroniza documentos protegidos y habilita los flujos de importación y smoke tests de esta fase."
+    />
+
+    <ProtectedDashboard
+      profileEndpoint={profileEndpoint}
+      logoutEndpoint={logoutEndpoint}
+      documentsEndpoint={documentsEndpoint}
+      company={DEFAULT_COMPANY}
+      supabaseUrl={SUPABASE_URL}
+    />
+
+    <IntegrationPanel apiBase={API_URL} client:load />
   </div>
 
   <script type="module">

@@ -19,7 +19,7 @@ export const DEFAULT_USER = {
 };
 
 export const NAV_ITEMS = [
-  { label: "Inicio", href: "/" },
+  { label: "Inicio", href: "/", badge: "F1.6" },
   { label: "Documentos", href: "/documents", badge: "F1.3" },
   { label: "Procesos", href: "/processes", badge: "F1.4" },
   { label: "Diagramas", href: "/diagrams", badge: "F1.5" },
