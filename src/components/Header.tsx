@@ -18,7 +18,10 @@ export default function Header() {
           >
             <MenuIcon size={22} />
           </button>
-          <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-lg font-semibold"
+          >
             <LayersIcon />
             <span>{APP_NAME}</span>
           </Link>
@@ -29,7 +32,10 @@ export default function Header() {
       </header>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
+        <div
+          className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
       )}
 
       <aside
@@ -53,7 +59,10 @@ export default function Header() {
               key={item.href}
               to={item.href}
               className="rounded-lg px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
-              activeProps={{ className: 'rounded-lg px-3 py-2 text-sm font-semibold bg-cyan-600 text-white' }}
+              activeProps={{
+                className:
+                  'rounded-lg px-3 py-2 text-sm font-semibold bg-cyan-600 text-white',
+              }}
               onClick={() => setIsOpen(false)}
             >
               {item.label}
