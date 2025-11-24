@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* -- IsoTrack brand palette for Tailwind v4 (configless) -- */
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1e40af;
+
+  --color-accent: #22d3ee;
+  --color-accent-light: #38e0f2;
+  --color-accent-dark: #0ea5e9;
+
+  --color-ink: #0f172a;
+  --color-ink-light: #1e293b;
+  --color-ink-dark: #e2e8f0;
+
+  --color-paper: #ffffff;
+  --color-paper-dark: #0b1220;
+}
+
 body {
   @apply m-0 bg-paper text-ink;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
