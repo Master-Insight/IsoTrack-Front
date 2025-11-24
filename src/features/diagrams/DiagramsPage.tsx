@@ -37,16 +37,13 @@ const COLORS = {
 type DiagramsPageProps = {
   diagramsEndpoint: string
   linksEndpoint: string
+  onRequireLogin?: () => void
 }
 
 type DragState = {
   id: string
   offsetX: number
   offsetY: number
-}
-
-function redirectToLogin() {
-  window.location.href = '/login'
 }
 
 function DiagramNodeCard({ node }: { node: DiagramNode }) {
@@ -172,7 +169,7 @@ function ArtifactLinkList({ links }: { links: ArtifactLink[] }) {
   )
 }
 
-export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPageProps) {
+export function DiagramsPage({ diagramsEndpoint, linksEndpoint, onRequireLogin }: DiagramsPageProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedDiagram, setSelectedDiagram] = useState<DiagramRecord | null>(null)
   const [links, setLinks] = useState<ArtifactLink[]>([])
@@ -201,7 +198,7 @@ export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPagePr
           text: 'Inicia sesión en /login para editar organigramas y flujos.',
           icon: 'warning',
         })
-        redirectToLogin()
+        onRequireLogin?.()
         return
       }
 

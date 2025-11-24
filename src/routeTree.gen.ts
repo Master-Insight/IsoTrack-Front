@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UserRouteImport } from './routes/user'
 import { Route as ProcessesRouteImport } from './routes/processes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as DiagramsRouteImport } from './routes/diagrams'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UserRoute = UserRouteImport.update({
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProcessesRoute = ProcessesRouteImport.update({
   id: '/processes',
   path: '/processes',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/user': typeof UserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/user': typeof UserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/user': typeof UserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/diagrams' | '/documents' | '/login' | '/processes'
+  fullPaths:
+    | '/'
+    | '/diagrams'
+    | '/documents'
+    | '/login'
+    | '/processes'
+    | '/user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diagrams' | '/documents' | '/login' | '/processes'
-  id: '__root__' | '/' | '/diagrams' | '/documents' | '/login' | '/processes'
+  to: '/' | '/diagrams' | '/documents' | '/login' | '/processes' | '/user'
+  id:
+    | '__root__'
+    | '/'
+    | '/diagrams'
+    | '/documents'
+    | '/login'
+    | '/processes'
+    | '/user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +99,18 @@ export interface RootRouteChildren {
   DocumentsRoute: typeof DocumentsRoute
   LoginRoute: typeof LoginRoute
   ProcessesRoute: typeof ProcessesRoute
+  UserRoute: typeof UserRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/user': {
+      id: '/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof UserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/processes': {
       id: '/processes'
       path: '/processes'
@@ -125,6 +155,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentsRoute: DocumentsRoute,
   LoginRoute: LoginRoute,
   ProcessesRoute: ProcessesRoute,
+  UserRoute: UserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
