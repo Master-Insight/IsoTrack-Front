@@ -1,6 +1,13 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+
+import { hasAvailableSession } from '@/features/auth/session'
 
 export const Route = createFileRoute('/_private')({
+  beforeLoad: () => {
+    if (!hasAvailableSession()) {
+      throw redirect({ to: '/' })
+    }
+  },
   component: PrivateLayoutRoute,
 })
 

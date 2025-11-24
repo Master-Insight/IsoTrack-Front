@@ -6,11 +6,10 @@ import { showAlert } from '@/lib/alerts'
 import { useAuthStore } from './store'
 import type { LoginPayload, UserProfile } from './api'
 import { fetchProfile, login, persistTokens } from './api'
+import { PROFILE_STORAGE_KEY } from './session'
 
 const loginEndpoint = `${API_URL}/users/login`
 const profileEndpoint = `${API_URL}/users/me`
-
-const PROFILE_STORAGE_KEY = 'profile'
 
 const initialPayload: LoginPayload = {
   email: DEFAULT_USER.email,
