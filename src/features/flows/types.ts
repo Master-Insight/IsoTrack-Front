@@ -12,6 +12,22 @@ export type FlowRecord = {
   updated_at: string
 }
 
+export type FlowTask = {
+  label: string
+  status: 'pendiente' | 'en curso' | 'completada'
+}
+
+export type FlowNodeMetadata = {
+  notes?: string
+  artifacts?: string[]
+  roles?: string[]
+  userAssigned?: string
+  visibleFor?: string[]
+  documents?: string[]
+  processes?: string[]
+  tasks?: FlowTask[]
+}
+
 export type FlowListResponse = {
   success: boolean
   message: string
@@ -24,7 +40,7 @@ export type FlowNodeRecord = {
   type: string
   system: string
   code: string
-  metadata: Record<string, unknown> | null
+  metadata: FlowNodeMetadata | null
   position: { x: number; y: number } | null
   flow_id: string
   company_id: string
@@ -32,12 +48,16 @@ export type FlowNodeRecord = {
   updated_at: string
 }
 
+export type FlowEdgeMetadata = {
+  style?: 'default' | 'decision'
+}
+
 export type FlowEdgeRecord = {
   id: string
   source_node: string | null
   target_node: string | null
   label: string | null
-  metadata: Record<string, unknown> | null
+  metadata: FlowEdgeMetadata | null
   flow_id: string
   company_id: string
   created_at: string
