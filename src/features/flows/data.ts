@@ -27,30 +27,6 @@ export const flowEndpoints = [
   { method: 'POST', path: '/flows/{id}/edges', detail: 'Conectar nodos y guardar el layout visual.' },
 ]
 
-export const sampleFlows = [
-  {
-    id: 'flow-onboarding',
-    name: 'Onboarding de Planta',
-    classification: 'principal',
-    visibility: ['Root', 'QA', 'Operaciones'],
-    status: 'listo para ReactFlow',
-  },
-  {
-    id: 'flow-auditoria',
-    name: 'Auditoría Interna',
-    classification: 'por área',
-    visibility: ['Calidad'],
-    status: 'pendiente de edges',
-  },
-  {
-    id: 'flow-capa',
-    name: 'NCR / CAPA',
-    classification: 'auxiliar',
-    visibility: ['Root', 'QA'],
-    status: 'modo borrador',
-  },
-]
-
 export const sampleNodes = [
   {
     id: 'node-plan',
