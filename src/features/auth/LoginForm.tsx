@@ -94,7 +94,7 @@ export function LoginForm() {
           icon: 'success',
         })
 
-        void navigate({ to: '/_private/dashboard' })
+        void navigate({ to: '/dashboard' })
       }
     } catch (error) {
       const message =

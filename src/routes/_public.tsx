@@ -5,7 +5,7 @@ import { hasAvailableSession } from '@/features/auth/session'
 export const Route = createFileRoute('/_public')({
   beforeLoad: () => {
     if (hasAvailableSession()) {
-      throw redirect({ to: '/_private/dashboard' })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: PublicLayoutRoute,
