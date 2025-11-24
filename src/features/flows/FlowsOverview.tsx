@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { ExternalLink, Info, List, Tag, Users } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
@@ -220,11 +221,21 @@ export function FlowsOverview() {
                       {selectedFlow.description}
                     </p>
                   </div>
-                  <span
-                    className={`${badgeClass} bg-purple-100 text-purple-700`}
-                  >
-                    ReactFlow
-                  </span>
+                  <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+                    <span
+                      className={`${badgeClass} bg-purple-100 text-purple-700`}
+                    >
+                      ReactFlow
+                    </span>
+                    <Link
+                      to="/flows/$id"
+                      params={{ id: selectedFlow.id }}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    >
+                      Abrir Flujo
+                      <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -264,7 +275,7 @@ export function FlowsOverview() {
                     Visualización en ReactFlow
                   </p>
                   <p className="mt-1 text-slate-600">
-                    Usa el botón “Abrir” para cargar este flujo en una hoja
+                    Usa el botón “Abrir Flujo” para cargar este flujo en una hoja
                     nueva con ReactFlow. Aquí mantenemos el resumen básico
                     mientras conectamos el canvas visual.
                   </p>

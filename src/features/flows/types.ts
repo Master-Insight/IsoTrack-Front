@@ -17,3 +17,40 @@ export type FlowListResponse = {
   message: string
   data: FlowRecord[]
 }
+
+export type FlowNodeRecord = {
+  id: string
+  label: string
+  type: string
+  system: string
+  code: string
+  metadata: Record<string, unknown> | null
+  position: { x: number; y: number } | null
+  flow_id: string
+  company_id: string
+  created_at: string
+  updated_at: string
+}
+
+export type FlowEdgeRecord = {
+  id: string
+  source: string | null
+  target: string | null
+  label: string | null
+  metadata: Record<string, unknown> | null
+  flow_id: string
+  company_id: string
+  created_at: string
+  updated_at: string
+}
+
+export type FlowDetailRecord = FlowRecord & {
+  nodes: FlowNodeRecord[]
+  edges: FlowEdgeRecord[]
+}
+
+export type FlowDetailResponse = {
+  success: boolean
+  message: string
+  data: FlowDetailRecord
+}
