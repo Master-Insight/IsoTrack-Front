@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 
-import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from '../../config/constants'
-import { showAlert } from '../../lib/alerts'
+import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from '@/config/constants'
+import { showAlert } from '@/lib/alerts'
 import { useAuthStore } from './store'
 import type { LoginPayload, UserProfile } from './api'
 import { fetchProfile, login, persistTokens } from './api'
@@ -24,9 +24,10 @@ type LoginResult = {
 export function LoginForm() {
   const [payload, setPayload] = useState<LoginPayload>(initialPayload)
   const [status, setStatus] = useState<string>('')
-  const [statusVariant, setStatusVariant] = useState<'neutral' | 'success' | 'error'>('neutral')
+  const [statusVariant, setStatusVariant] = useState<
+    'neutral' | 'success' | 'error'
+  >('neutral')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
 
   const setProfile = useAuthStore((state) => state.setProfile)
   const setStatusStore = useAuthStore((state) => state.setStatus)
@@ -49,7 +50,10 @@ export function LoginForm() {
     if (!accessToken?.startsWith('eyJ')) return
     try {
       const profileResponse = await fetchProfile(profileEndpoint)
-      sessionStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profileResponse.data))
+      sessionStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify(profileResponse.data),
+      )
       emitLogin({ profile: profileResponse.data, accessToken })
       setStatusStore('ready')
       setProfile({
@@ -67,13 +71,13 @@ export function LoginForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setStatus('Conectando con FastAPI...')
+    setStatus('Verificando credenciales...')
     setStatusVariant('neutral')
     setIsSubmitting(true)
 
     try {
       const response = await login(loginEndpoint, payload)
-      setStatus(response.message || 'Login exitoso')
+      setStatus(response.message || 'Ingreso exitoso')
       setStatusVariant('success')
 
       if (response.success && response.data) {
@@ -85,13 +89,13 @@ export function LoginForm() {
         await persistProfile(accessToken)
         await showAlert({
           title: 'Sesión validada',
-          text: 'Redirigiendo al panel principal...',
+          text: 'Estamos preparando tu panel principal...',
           icon: 'success',
         })
-        setPreview(JSON.stringify(response.data, null, 2))
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión'
+      const message =
+        error instanceof Error ? error.message : 'No se pudo iniciar sesión'
       setStatus(message)
       setStatusVariant('error')
       await showAlert({
@@ -105,15 +109,18 @@ export function LoginForm() {
   }
 
   return (
-    <section className="card-surface p-8 space-y-6">
+    <section className="card-surface space-y-6 border border-slate-100 p-8 shadow-lg shadow-primary/5">
       <header className="space-y-2">
         <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary text-sm font-semibold">
-          Acceso seguro
-          <span className="badge bg-primary/10 text-primary">FastAPI + Supabase</span>
+          Portal seguro
+          <span className="badge bg-accent/10 text-accent">
+            Clientes IsoTrack
+          </span>
         </div>
-        <h2 className="text-2xl font-bold text-ink">Ingresá a IsoTrack</h2>
+        <h2 className="text-2xl font-bold text-ink">Ingresá a tu cuenta</h2>
         <p className="text-slate-600 text-sm">
-          Autenticación basada en Supabase con FastAPI. La sesión se vincula a la empresa {DEFAULT_COMPANY.name}.
+          Autenticá tu acceso para la organización {DEFAULT_COMPANY.name} y
+          continuá con tus documentos y procesos.
         </p>
       </header>
 
@@ -149,9 +156,15 @@ export function LoginForm() {
             required
             placeholder="••••••••"
           />
-          <p className="text-xs text-slate-500">Tu contraseña se valida en FastAPI contra Supabase Auth.</p>
+          <p className="text-xs text-slate-500">
+            Tu sesión se encripta y se asocia a tu empresa de forma automática.
+          </p>
         </div>
-        <button className="button-primary w-full" type="submit" disabled={isDisabled}>
+        <button
+          className="button-primary w-full"
+          type="submit"
+          disabled={isDisabled}
+        >
           {isSubmitting ? 'Validando...' : 'Iniciar sesión'}
         </button>
         {status && (
@@ -168,11 +181,10 @@ export function LoginForm() {
             {status}
           </p>
         )}
-        {preview && (
-          <pre className="text-xs bg-slate-900 text-white p-4 rounded-xl overflow-x-auto border border-slate-800">
-            {preview}
-          </pre>
-        )}
+        <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-xs text-slate-600">
+          ¿Necesitás ayuda? Contactá al administrador de tu empresa o escribinos
+          a soporte para restablecer tu acceso.
+        </div>
       </form>
     </section>
   )

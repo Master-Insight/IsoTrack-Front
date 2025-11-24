@@ -4,9 +4,9 @@ import { LoginForm } from './LoginForm'
 export function AuthLanding() {
   return (
     <PublicLayout
-      title="Ingresá a IsoTrack"
-      subtitle="Gestioná documentos, procesos y diagramas desde un panel protegido."
-      description="El layout público mantiene visible el acceso mientras separa el área privada con restricciones claras."
+      title="Bienvenido a IsoTrack"
+      subtitle="Centralizá la gestión de tus normas, documentos y diagramas en un portal listo para auditar."
+      description="Ingresá con tus credenciales corporativas para acceder al panel seguro y continuar con tus flujos de trabajo."
     >
       <LoginForm />
     </PublicLayout>
