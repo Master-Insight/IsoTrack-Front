@@ -2,7 +2,7 @@ const alertOptions = {
   confirmButtonColor: '#2563eb',
 }
 
-let swalPromise: Promise<any> | null = null
+let swalPromise: Promise<typeof import('sweetalert2')> | null = null
 let fallbackContainer: HTMLDivElement | null = null
 
 const iconToEmoji: Record<string, string> = {
@@ -79,7 +79,7 @@ function renderFallbackNotice({
 
 export async function loadSwal() {
   if (!swalPromise) {
-    swalPromise = import('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js')
+    swalPromise = import('sweetalert2')
   }
   const module = await swalPromise
   return module.default ?? module
