@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProcessesRouteImport } from './routes/processes'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as DiagramsRouteImport } from './routes/diagrams'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoTableRouteImport } from './routes/demo/table'
@@ -32,9 +34,19 @@ const ProcessesRoute = ProcessesRouteImport.update({
   path: '/processes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentsRoute = DocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagramsRoute = DiagramsRouteImport.update({
+  id: '/diagrams',
+  path: '/diagrams',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -115,7 +127,9 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/diagrams': typeof DiagramsRoute
   '/documents': typeof DocumentsRoute
+  '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/demo/db-chat': typeof DemoDbChatRoute
   '/demo/db-chat-api': typeof DemoDbChatApiRoute
@@ -134,7 +148,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/diagrams': typeof DiagramsRoute
   '/documents': typeof DocumentsRoute
+  '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/demo/db-chat': typeof DemoDbChatRoute
   '/demo/db-chat-api': typeof DemoDbChatApiRoute
@@ -154,7 +170,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/diagrams': typeof DiagramsRoute
   '/documents': typeof DocumentsRoute
+  '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/demo/db-chat': typeof DemoDbChatRoute
   '/demo/db-chat-api': typeof DemoDbChatApiRoute
@@ -175,7 +193,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/diagrams'
     | '/documents'
+    | '/login'
     | '/processes'
     | '/demo/db-chat'
     | '/demo/db-chat-api'
@@ -194,7 +214,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/diagrams'
     | '/documents'
+    | '/login'
     | '/processes'
     | '/demo/db-chat'
     | '/demo/db-chat-api'
@@ -213,7 +235,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/diagrams'
     | '/documents'
+    | '/login'
     | '/processes'
     | '/demo/db-chat'
     | '/demo/db-chat-api'
@@ -233,7 +257,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DiagramsRoute: typeof DiagramsRoute
   DocumentsRoute: typeof DocumentsRoute
+  LoginRoute: typeof LoginRoute
   ProcessesRoute: typeof ProcessesRoute
   DemoDbChatRoute: typeof DemoDbChatRoute
   DemoDbChatApiRoute: typeof DemoDbChatApiRoute
@@ -260,11 +286,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcessesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documents': {
       id: '/documents'
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagrams': {
+      id: '/diagrams'
+      path: '/diagrams'
+      fullPath: '/diagrams'
+      preLoaderRoute: typeof DiagramsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -377,7 +417,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DiagramsRoute: DiagramsRoute,
   DocumentsRoute: DocumentsRoute,
+  LoginRoute: LoginRoute,
   ProcessesRoute: ProcessesRoute,
   DemoDbChatRoute: DemoDbChatRoute,
   DemoDbChatApiRoute: DemoDbChatApiRoute,

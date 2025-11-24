@@ -28,4 +28,6 @@ export const NAV_ITEMS = [
   { label: 'Inicio', href: '/' },
   { label: 'Documentos', href: '/documents' },
   { label: 'Procesos', href: '/processes' },
+  { label: 'Diagramas', href: '/diagrams' },
+  { label: 'Login', href: '/login' },
 ]
