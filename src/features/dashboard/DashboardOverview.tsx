@@ -1,11 +1,11 @@
 import { IntegrationPanel } from './IntegrationPanel'
-import { ProtectedDashboard } from './ProtectedDashboard'
+import { DashboardPrimer } from './DashboardPrimer'
 
 export function DashboardOverview() {
   return (
     <div className="space-y-6">
       <IntegrationPanel />
-      <ProtectedDashboard />
+      <DashboardPrimer />
     </div>
   )
 }
