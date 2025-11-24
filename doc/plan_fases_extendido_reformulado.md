@@ -70,17 +70,55 @@ Node {
 ---
 
 ## 2.3 — Visualizador ReactFlow
-Implementación del canvas visual:
-- Nodos custom
-- Conexiones interactivas
-- Minimapa
-- Panel lateral con:
-  - Información del nodo
-  - Documentos
-  - Procesos
-  - Tareas
-  - Notas
-  - Roles responsabiles
+Implementación del canvas visual para **consumir** flujos ya guardados. Esta fase no modifica datos; solo renderiza y permite navegar.
+
+### ��� Objetivo
+Mostrar flujos con alta legibilidad y permitir que el usuario consulte la información de cada nodo sin necesidad de entrar al editor.
+
+### ��� Entregables
+- Vista **/flows/:id/view** integrada al router.
+- Canvas ReactFlow con nodos custom y edges interactivos.
+- Panel lateral de detalle sincronizado con la selección del nodo.
+- Hook de data fetching para obtener `flow`, `flow_nodes` y `flow_edges` (mock API o backend real si está disponible).
+
+### ��� Componentes / Funcionalidades clave
+- **NodeRenderer**: nodos custom por tipo (`step`, `decision`, `event`, `process`, `integration`).
+- **EdgeRenderer**: estilos diferenciados (por ejemplo, decisiones en línea punteada o color alternativo).
+- **Minimap** y **Controls** de ReactFlow activados.
+- **Hover / focus**: resaltar nodo y edges conectados.
+- **Selección**: al hacer clic en un nodo, abre/actualiza el panel lateral.
+- **Fit view** inicial y botón de reset zoom.
+- **Persistencia de viewport** (opcional): si el usuario navega entre nodos, recordar zoom/posición mientras permanece en la vista.
+
+### ���️ Panel lateral (solo lectura)
+- Sección **Información**: etiqueta, tipo, sistema, notas principales.
+- Sección **Documentos**: lista de IDs o títulos enlazables (placeholder si no hay backend).
+- Sección **Procesos** y **Tareas**: chips con estado (ej. “pendiente”, “en curso”, “completada”).
+- Sección **Notas y roles responsables**: texto enriquecido básico (markdown-light o preformateado).
+- Acción “Ver en editor” (link hacia 2.4) sin modificar la data.
+
+### ��� Datos y carga
+- Endpoint esperado: `GET /flows/:id` devolviendo nodos y edges; si no existe backend, crear `mockFlows.ts` en `src/mocks/`.
+- Normalizar la data antes de pasarla a ReactFlow (IDs string, posición `{x, y}`, metadata opcional).
+- Manejo de **loading** y **empty state** (ej. “El flujo no tiene nodos”).
+- Manejo de **errores**: retry manual y mensaje contextual.
+
+### ��� UX / Accesibilidad
+- Zoom y paneo fluidos (scroll/drag) sin bloquear la lectura.
+- Contraste suficiente en nodos y edges; estados accesibles (color + iconografía).
+- Navegación con teclado: permitir seleccionar siguiente/anterior nodo (fallback básico).
+
+### ✅ Criterios de aceptación
+- Puedo abrir un flujo existente y ver todos sus nodos en el canvas.
+- Al seleccionar un nodo, el panel lateral muestra su metadata sin deshacer el zoom.
+- Minimapa y controles funcionan y permiten reencuadrar el flujo.
+- No se permite editar ni arrastrar nodos en esta fase (modo lectura).
+- Carga y errores muestran UI clara (spinner/toast/mensaje) sin romper el canvas.
+
+### ��� Puentes hacia 2.4
+- Reutilizar los nodos y edges para el modo edición, activando drag & drop.
+- El link “Ver en editor” servirá como entrada directa al modo edición con el mismo `flowId`.
+- La normalización de datos y hooks de fetch serán la base para guardar cambios luego.
 
 ---
 

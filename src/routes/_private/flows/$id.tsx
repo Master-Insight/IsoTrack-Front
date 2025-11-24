@@ -9,7 +9,6 @@ export const Route = createFileRoute('/_private/flows/$id')({
 
 function FlowDetailPage() {
   const { id } = Route.useParams()
-  console.log(id)
   return (
     <PrivateLayout
       title="Flujo"
