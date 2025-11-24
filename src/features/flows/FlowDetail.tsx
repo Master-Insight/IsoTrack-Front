@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
-import ReactFlow, {
+import {
+  ReactFlow,
   Background,
   Controls,
   MiniMap,
@@ -32,11 +33,10 @@ export function FlowDetailCanvas({ flowId }: FlowDetailCanvasProps) {
     return data.nodes.map((node, index) => ({
       id: node.id,
       type: 'default',
-      position:
-        node.position || {
-          x: (index % 3) * 240,
-          y: Math.floor(index / 3) * 140,
-        },
+      position: node.position || {
+        x: (index % 3) * 240,
+        y: Math.floor(index / 3) * 140,
+      },
       data: {
         label: node.code ? `${node.code} · ${node.label}` : node.label,
         system: node.system,
@@ -84,14 +84,18 @@ export function FlowDetailCanvas({ flowId }: FlowDetailCanvasProps) {
     )
   }
 
-  const tagText = data.tags?.length ? data.tags.join(' · ') : 'Sin tags asignados'
+  const tagText = data.tags?.length
+    ? data.tags.join(' · ')
+    : 'Sin tags asignados'
 
   return (
     <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs uppercase text-slate-500">Detalle del flujo</p>
-          <h1 className="text-3xl font-semibold text-slate-900">{data.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">
+            {data.title}
+          </h1>
           <p className="text-sm text-slate-600">{data.description}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-slate-600">
             <span className={`${badgeClass} bg-indigo-100 text-indigo-700`}>
@@ -120,8 +124,8 @@ export function FlowDetailCanvas({ flowId }: FlowDetailCanvasProps) {
           <p className="font-semibold text-slate-900">Tags</p>
           <p>{tagText}</p>
           <p className="mt-2 text-xs text-slate-500">
-            ReactFlow renderiza los nodos y edges como llegan del backend. Si los
-            nodos no traen posición, el layout se acomodará en columnas.
+            ReactFlow renderiza los nodos y edges como llegan del backend. Si
+            los nodos no traen posición, el layout se acomodará en columnas.
           </p>
         </div>
       </header>

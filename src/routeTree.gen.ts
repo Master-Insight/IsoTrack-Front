@@ -15,10 +15,10 @@ import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PrivateUserRouteImport } from './routes/_private/user'
 import { Route as PrivateProcessesRouteImport } from './routes/_private/processes'
-import { Route as PrivateFlowsRouteImport } from './routes/_private/flows'
 import { Route as PrivateDocumentsRouteImport } from './routes/_private/documents'
 import { Route as PrivateDiagramsRouteImport } from './routes/_private/diagrams'
 import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
+import { Route as PrivateFlowsIndexRouteImport } from './routes/_private/flows/index'
 import { Route as PrivateFlowsIdRouteImport } from './routes/_private/flows/$id'
 
 const PublicRoute = PublicRouteImport.update({
@@ -49,11 +49,6 @@ const PrivateProcessesRoute = PrivateProcessesRouteImport.update({
   path: '/processes',
   getParentRoute: () => PrivateRoute,
 } as any)
-const PrivateFlowsRoute = PrivateFlowsRouteImport.update({
-  id: '/flows',
-  path: '/flows',
-  getParentRoute: () => PrivateRoute,
-} as any)
 const PrivateDocumentsRoute = PrivateDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
@@ -69,33 +64,38 @@ const PrivateDashboardRoute = PrivateDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => PrivateRoute,
 } as any)
+const PrivateFlowsIndexRoute = PrivateFlowsIndexRouteImport.update({
+  id: '/flows/',
+  path: '/flows/',
+  getParentRoute: () => PrivateRoute,
+} as any)
 const PrivateFlowsIdRoute = PrivateFlowsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PrivateFlowsRoute,
+  id: '/flows/$id',
+  path: '/flows/$id',
+  getParentRoute: () => PrivateRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/dashboard': typeof PrivateDashboardRoute
   '/diagrams': typeof PrivateDiagramsRoute
   '/documents': typeof PrivateDocumentsRoute
-  '/flows': typeof PrivateFlowsRouteWithChildren
   '/processes': typeof PrivateProcessesRoute
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
   '/': typeof PublicIndexRoute
   '/flows/$id': typeof PrivateFlowsIdRoute
+  '/flows': typeof PrivateFlowsIndexRoute
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof PrivateDashboardRoute
   '/diagrams': typeof PrivateDiagramsRoute
   '/documents': typeof PrivateDocumentsRoute
-  '/flows': typeof PrivateFlowsRouteWithChildren
   '/processes': typeof PrivateProcessesRoute
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
   '/': typeof PublicIndexRoute
   '/flows/$id': typeof PrivateFlowsIdRoute
+  '/flows': typeof PrivateFlowsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,12 +104,12 @@ export interface FileRoutesById {
   '/_private/dashboard': typeof PrivateDashboardRoute
   '/_private/diagrams': typeof PrivateDiagramsRoute
   '/_private/documents': typeof PrivateDocumentsRoute
-  '/_private/flows': typeof PrivateFlowsRouteWithChildren
   '/_private/processes': typeof PrivateProcessesRoute
   '/_private/user': typeof PrivateUserRoute
   '/_public/login': typeof PublicLoginRoute
   '/_public/': typeof PublicIndexRoute
   '/_private/flows/$id': typeof PrivateFlowsIdRoute
+  '/_private/flows/': typeof PrivateFlowsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,23 +117,23 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagrams'
     | '/documents'
-    | '/flows'
     | '/processes'
     | '/user'
     | '/login'
     | '/'
     | '/flows/$id'
+    | '/flows'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
     | '/diagrams'
     | '/documents'
-    | '/flows'
     | '/processes'
     | '/user'
     | '/login'
     | '/'
     | '/flows/$id'
+    | '/flows'
   id:
     | '__root__'
     | '/_private'
@@ -141,12 +141,12 @@ export interface FileRouteTypes {
     | '/_private/dashboard'
     | '/_private/diagrams'
     | '/_private/documents'
-    | '/_private/flows'
     | '/_private/processes'
     | '/_private/user'
     | '/_public/login'
     | '/_public/'
     | '/_private/flows/$id'
+    | '/_private/flows/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateProcessesRouteImport
       parentRoute: typeof PrivateRoute
     }
-    '/_private/flows': {
-      id: '/_private/flows'
-      path: '/flows'
-      fullPath: '/flows'
-      preLoaderRoute: typeof PrivateFlowsRouteImport
-      parentRoute: typeof PrivateRoute
-    }
     '/_private/documents': {
       id: '/_private/documents'
       path: '/documents'
@@ -226,44 +219,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateDashboardRouteImport
       parentRoute: typeof PrivateRoute
     }
+    '/_private/flows/': {
+      id: '/_private/flows/'
+      path: '/flows'
+      fullPath: '/flows'
+      preLoaderRoute: typeof PrivateFlowsIndexRouteImport
+      parentRoute: typeof PrivateRoute
+    }
     '/_private/flows/$id': {
       id: '/_private/flows/$id'
-      path: '/$id'
+      path: '/flows/$id'
       fullPath: '/flows/$id'
       preLoaderRoute: typeof PrivateFlowsIdRouteImport
-      parentRoute: typeof PrivateFlowsRoute
+      parentRoute: typeof PrivateRoute
     }
   }
 }
-
-interface PrivateFlowsRouteChildren {
-  PrivateFlowsIdRoute: typeof PrivateFlowsIdRoute
-}
-
-const PrivateFlowsRouteChildren: PrivateFlowsRouteChildren = {
-  PrivateFlowsIdRoute: PrivateFlowsIdRoute,
-}
-
-const PrivateFlowsRouteWithChildren = PrivateFlowsRoute._addFileChildren(
-  PrivateFlowsRouteChildren,
-)
 
 interface PrivateRouteChildren {
   PrivateDashboardRoute: typeof PrivateDashboardRoute
   PrivateDiagramsRoute: typeof PrivateDiagramsRoute
   PrivateDocumentsRoute: typeof PrivateDocumentsRoute
-  PrivateFlowsRoute: typeof PrivateFlowsRouteWithChildren
   PrivateProcessesRoute: typeof PrivateProcessesRoute
   PrivateUserRoute: typeof PrivateUserRoute
+  PrivateFlowsIdRoute: typeof PrivateFlowsIdRoute
+  PrivateFlowsIndexRoute: typeof PrivateFlowsIndexRoute
 }
 
 const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateDashboardRoute: PrivateDashboardRoute,
   PrivateDiagramsRoute: PrivateDiagramsRoute,
   PrivateDocumentsRoute: PrivateDocumentsRoute,
-  PrivateFlowsRoute: PrivateFlowsRouteWithChildren,
   PrivateProcessesRoute: PrivateProcessesRoute,
   PrivateUserRoute: PrivateUserRoute,
+  PrivateFlowsIdRoute: PrivateFlowsIdRoute,
+  PrivateFlowsIndexRoute: PrivateFlowsIndexRoute,
 }
 
 const PrivateRouteWithChildren =
