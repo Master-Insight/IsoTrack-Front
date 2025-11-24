@@ -34,8 +34,8 @@ export type FlowNodeRecord = {
 
 export type FlowEdgeRecord = {
   id: string
-  source: string | null
-  target: string | null
+  source_node: string | null
+  target_node: string | null
   label: string | null
   metadata: Record<string, unknown> | null
   flow_id: string

@@ -55,11 +55,11 @@ export function FlowDetailCanvas({ flowId }: FlowDetailCanvasProps) {
     if (!data?.edges) return []
 
     return data.edges
-      .filter((edge) => edge.source && edge.target)
+      .filter((edge) => edge.source_node && edge.target_node)
       .map((edge) => ({
         id: edge.id,
-        source: edge.source as string,
-        target: edge.target as string,
+        source: edge.source_node as string,
+        target: edge.target_node as string,
         label: edge.label ?? undefined,
         animated: true,
         style: { stroke: '#4f46e5' },

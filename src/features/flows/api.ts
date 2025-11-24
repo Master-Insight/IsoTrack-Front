@@ -41,8 +41,8 @@ type FlowNodeApiRecord = {
 
 type FlowEdgeApiRecord = {
   id: string
-  source: string | null
-  target: string | null
+  source_node: string | null
+  target_node: string | null
   label: string | null
   metadata: Record<string, unknown> | null
   flow_id: string
@@ -84,7 +84,10 @@ function normalizeEdgeRecord(apiRecord: FlowEdgeApiRecord): FlowEdgeRecord {
 function normalizeDetailResponse(data: {
   success: boolean
   message: string
-  data: FlowApiRecord & { nodes: FlowNodeApiRecord[]; edges: FlowEdgeApiRecord[] }
+  data: FlowApiRecord & {
+    nodes: FlowNodeApiRecord[]
+    edges: FlowEdgeApiRecord[]
+  }
 }): FlowDetailResponse {
   const { nodes, edges, ...flowData } = data.data
 
@@ -136,16 +139,24 @@ export async function fetchFlows(endpoint: string): Promise<FlowListResponse> {
   }
 }
 
-export async function fetchFlowById(endpoint: string): Promise<FlowDetailResponse> {
+export async function fetchFlowById(
+  endpoint: string,
+): Promise<FlowDetailResponse> {
   try {
     const { data } = await httpClient.get<{
       success: boolean
       message: string
-      data: FlowApiRecord & { nodes: FlowNodeApiRecord[]; edges: FlowEdgeApiRecord[] }
+      data: FlowApiRecord & {
+        nodes: FlowNodeApiRecord[]
+        edges: FlowEdgeApiRecord[]
+      }
     }>(endpoint)
     return normalizeDetailResponse(data)
   } catch (error) {
-    const message = getErrorMessage(error, 'No se pudo obtener el flujo solicitado')
+    const message = getErrorMessage(
+      error,
+      'No se pudo obtener el flujo solicitado',
+    )
     throw new Error(message)
   }
 }
