@@ -1,29 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileIcon, Link2Icon } from '@radix-ui/react-icons'
 import { clsx } from 'clsx'
 
 import { DEFAULT_COMPANY } from '../../../config/constants'
-import { getSelectedDocument, useDocumentsStore } from '../store'
+import { useDocumentDetailQuery, useDocumentsQuery } from '../queries'
+import type { DocumentRecord } from '../types'
 
 const badgeClass = 'badge px-3 py-1 rounded-full text-xs font-semibold'
 
-function DocumentRow({
-  id,
-  title,
-  code,
-  status,
-  active,
-}: {
+type DocumentRowProps = {
   id: string
   title: string
   code: string
   status: string | null
   active: boolean
-}) {
-  const selectDocument = useDocumentsStore((state) => state.selectDocument)
-  const selectedId = useDocumentsStore((state) => state.selectedId)
+  isSelected: boolean
+  onSelect: (id: string) => void
+}
 
-  const isSelected = selectedId === id
+function DocumentRow({ id, title, code, status, active, isSelected, onSelect }: DocumentRowProps) {
   return (
     <button
       className={clsx(
@@ -32,7 +27,7 @@ function DocumentRow({
           ? 'border-cyan-500 bg-cyan-500/10 text-slate-900'
           : 'border-slate-200 bg-white text-slate-900',
       )}
-      onClick={() => selectDocument(id)}
+      onClick={() => onSelect(id)}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -45,9 +40,7 @@ function DocumentRow({
         <span
           className={clsx(
             badgeClass,
-            active
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-slate-200 text-slate-700',
+            active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700',
           )}
         >
           {status || 'sin estado'}
@@ -57,9 +50,7 @@ function DocumentRow({
   )
 }
 
-function DocumentDetail() {
-  const selectedDocument = useDocumentsStore(getSelectedDocument)
-
+function DocumentDetail({ selectedDocument }: { selectedDocument: DocumentRecord | null }) {
   if (!selectedDocument) {
     return (
       <div className="space-y-2 text-sm text-slate-600">
@@ -71,7 +62,7 @@ function DocumentDetail() {
     )
   }
 
-  const { title, description, code, type, category, owner, currentVersion, tags } =
+  const { title, description, code, type, category, owner, currentVersion, tags, status } =
     selectedDocument
 
   const externalUrl = currentVersion?.externalUrl || currentVersion?.fileUrl
@@ -113,7 +104,7 @@ function DocumentDetail() {
         </div>
         <div>
           <p className="text-xs uppercase text-slate-500">Estado</p>
-          <p>{selectedDocument.status || '—'}</p>
+          <p>{status || '—'}</p>
         </div>
       </div>
 
@@ -151,11 +142,25 @@ function DocumentDetail() {
 }
 
 export function DocumentsPanel({ endpoint }: { endpoint?: string }) {
-  const { documents, isLoading, loadDocuments } = useDocumentsStore()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const documentsQuery = useDocumentsQuery(endpoint)
+  const detailQuery = useDocumentDetailQuery(selectedId || undefined, endpoint)
 
   useEffect(() => {
-    loadDocuments(endpoint)
-  }, [endpoint, loadDocuments])
+    if (!selectedId && documentsQuery.data?.length) {
+      setSelectedId(documentsQuery.data[0]?.id)
+    }
+  }, [documentsQuery.data, selectedId])
+
+  const selectedDocument = useMemo<DocumentRecord | null>(() => {
+    if (detailQuery.data) return detailQuery.data
+    if (!documentsQuery.data || documentsQuery.data.length === 0) return null
+    const fallbackId = selectedId || documentsQuery.data[0]?.id
+    return documentsQuery.data.find((doc) => doc.id === fallbackId) || null
+  }, [detailQuery.data, documentsQuery.data, selectedId])
+
+  const isLoadingList = documentsQuery.isLoading
+  const isSyncing = documentsQuery.isFetching || detailQuery.isFetching
 
   return (
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -174,17 +179,29 @@ export function DocumentsPanel({ endpoint }: { endpoint?: string }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500">Listado (GET /documents)</p>
-            {isLoading && <span className="text-xs text-slate-500">Sincronizando...</span>}
+            {isSyncing && <span className="text-xs text-slate-500">Sincronizando...</span>}
           </div>
-          <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-1">
-            {documents.map((document) => (
-              <DocumentRow key={document.id} {...document} status={document.status} />
-            ))}
-          </div>
+          {isLoadingList ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+              Cargando documentos...
+            </div>
+          ) : (
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-1">
+              {documentsQuery.data?.map((document) => (
+                <DocumentRow
+                  key={document.id}
+                  {...document}
+                  status={document.status}
+                  isSelected={selectedId === document.id}
+                  onSelect={setSelectedId}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
-          <DocumentDetail />
+          <DocumentDetail selectedDocument={selectedDocument || null} />
         </div>
       </div>
     </section>

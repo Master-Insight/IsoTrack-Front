@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { DEFAULT_COMPANY } from '../../config/constants'
 import { showAlert } from '../../lib/alerts'
-import type { ArtifactLink } from '../../services/processes'
+import type { ArtifactLink } from '../processes/api'
 import {
   fetchDiagramDetail,
   fetchDiagramLinks,

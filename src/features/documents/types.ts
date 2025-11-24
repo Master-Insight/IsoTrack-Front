@@ -13,6 +13,16 @@ export type DocumentVersion = {
   createdAt: string
 }
 
+export type DocumentRead = {
+  id: string
+  documentId: string
+  userId: string
+  user: string
+  position: string | null
+  readAt: string
+  dueDate: string | null
+}
+
 export type DocumentRecord = {
   id: string
   title: string
@@ -31,4 +41,6 @@ export type DocumentRecord = {
   status: string | null
   currentVersion: DocumentVersion | null
   versions: DocumentVersion[]
+  reads?: DocumentRead[]
+  nextReviewAt?: string | null
 }
