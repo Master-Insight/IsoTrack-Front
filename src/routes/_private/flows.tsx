@@ -11,7 +11,7 @@ function FlowsPage() {
   return (
     <PrivateLayout
       title="Flujos"
-      subtitle="Fase 2.2 enfocada en backend: flows, nodes y edges listos para ReactFlow."
+      subtitle="Listado de flujos disponibles y acceso al canvas ReactFlow."
     >
       <FlowsOverview />
     </PrivateLayout>

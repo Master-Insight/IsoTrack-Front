@@ -2,12 +2,14 @@ export type FlowRecord = {
   id: string
   title: string
   description: string
-  classification: string | null
+  type: string | null
+  tags: string[] | null
   area: string | null
-  visibilityRoles: string[] | null
-  companyId: string
-  createdAt: string
-  updatedAt: string
+  visibility: string
+  visibility_roles: string[] | null
+  company_id: string
+  created_at: string
+  updated_at: string
 }
 
 export type FlowListResponse = {

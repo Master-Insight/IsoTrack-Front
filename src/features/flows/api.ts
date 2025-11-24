@@ -5,12 +5,14 @@ import httpClient from '@/services/httpClient'
 import type { FlowListResponse, FlowRecord } from './types'
 
 export type FlowApiRecord = {
+  id: string
   title: string
   description: string
-  classification: string | null
+  type: string | null
+  tags: string[] | null
   area: string | null
+  visibility: string
   visibility_roles: string[] | null
-  id: string
   company_id: string
   created_at: string
   updated_at: string
@@ -21,16 +23,22 @@ function normalizeFlowRecord(apiRecord: FlowApiRecord): FlowRecord {
     id: apiRecord.id,
     title: apiRecord.title,
     description: apiRecord.description,
-    classification: apiRecord.classification,
+    type: apiRecord.type,
+    tags: apiRecord.tags,
     area: apiRecord.area,
-    visibilityRoles: apiRecord.visibility_roles,
-    companyId: apiRecord.company_id,
-    createdAt: apiRecord.created_at,
-    updatedAt: apiRecord.updated_at,
+    visibility: apiRecord.visibility,
+    visibility_roles: apiRecord.visibility_roles,
+    company_id: apiRecord.company_id,
+    created_at: apiRecord.created_at,
+    updated_at: apiRecord.updated_at,
   }
 }
 
-function normalizeListResponse(data: { success: boolean; message: string; data: FlowApiRecord[] }): FlowListResponse {
+function normalizeListResponse(data: {
+  success: boolean
+  message: string
+  data: FlowApiRecord[]
+}): FlowListResponse {
   return {
     ...data,
     data: data.data.map(normalizeFlowRecord),
@@ -47,10 +55,17 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export async function fetchFlows(endpoint: string): Promise<FlowListResponse> {
   try {
-    const { data } = await httpClient.get<{ success: boolean; message: string; data: FlowApiRecord[] }>(endpoint)
+    const { data } = await httpClient.get<{
+      success: boolean
+      message: string
+      data: FlowApiRecord[]
+    }>(endpoint)
     return normalizeListResponse(data)
   } catch (error) {
-    const message = getErrorMessage(error, 'No se pudo obtener los flujos disponibles')
+    const message = getErrorMessage(
+      error,
+      'No se pudo obtener los flujos disponibles',
+    )
     throw new Error(message)
   }
 }

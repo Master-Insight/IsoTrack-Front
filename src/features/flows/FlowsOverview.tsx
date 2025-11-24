@@ -1,7 +1,8 @@
-import { Database, GitBranch, Network, ShieldCheck, Table } from 'lucide-react'
+import { ExternalLink, Info, List, Users } from 'lucide-react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
-import { flowEndpoints, flowNotes, flowTables, sampleEdges, sampleNodes } from './data'
 import { useFlowsQuery } from './queries'
+import type { FlowRecord } from './types'
 
 const badgeClass = 'badge px-3 py-1 rounded-full text-xs font-semibold'
 
@@ -9,243 +10,212 @@ export function FlowsOverview() {
   const flowsQuery = useFlowsQuery()
   const { data: flows, isLoading, isFetching, error } = flowsQuery
 
+  const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (flows?.length && !selectedFlowId) {
+      setSelectedFlowId(flows[0].id)
+    }
+  }, [flows, selectedFlowId])
+
+  useEffect(() => {
+    // Debug: conocer la data que llega desde el backend
+    console.log('flujos', flows)
+  }, [flows])
+
+  const selectedFlow: FlowRecord | undefined = useMemo(
+    () => flows?.find((flow) => flow.id === selectedFlowId),
+    [flows, selectedFlowId],
+  )
+
   return (
-    <div className="space-y-6">
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-sm text-slate-500">Fase 2.2</p>
-            <h2 className="text-2xl font-bold text-slate-900">Flujos disponibles en backend</h2>
+            <h2 className="text-3xl font-semibold text-slate-900">Flujos</h2>
             <p className="text-sm text-slate-600">
-              Consumimos el endpoint GET /flows para listar los flujos con su descripción y clasificación.
+              Listado de flujos disponibles.
             </p>
           </div>
           <span className={`${badgeClass} bg-indigo-100 text-indigo-700`}>
-            {isFetching ? 'Sincronizando...' : 'GET /flows'}
+            {isFetching ? 'Actualizando...' : `${flows?.length ?? 0} flujos`}
           </span>
         </div>
-
-        {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {(error as Error).message}
-          </div>
-        ) : null}
-
-        {isLoading ? (
-          <div className="space-y-2">
-            <div className="h-12 w-full animate-pulse rounded-xl bg-slate-100" />
-            <div className="h-12 w-full animate-pulse rounded-xl bg-slate-100" />
-            <div className="h-12 w-full animate-pulse rounded-xl bg-slate-100" />
-          </div>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {flows?.map((flow) => (
-              <article
-                key={flow.id}
-                className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 text-sm text-slate-700"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-base font-semibold text-slate-900">{flow.title}</p>
-                    <p className="text-xs text-slate-500">{flow.area || 'Área no asignada'}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {flow.classification ? (
-                      <span className={`${badgeClass} bg-slate-900 text-white`}>{flow.classification}</span>
-                    ) : null}
-                    {flow.visibilityRoles?.length ? (
-                      <span className={`${badgeClass} bg-slate-100 text-slate-700`}>
-                        {flow.visibilityRoles.join(' · ')}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-600">{flow.description}</p>
-              </article>
-            ))}
-          </div>
-        )}
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-sm text-slate-500">Checkpoint 2.2</p>
-            <h2 className="text-2xl font-bold text-slate-900">Módulo Backend de Flujos</h2>
-            <p className="text-sm text-slate-600">
-              Tablas, endpoints y nodos listos para que ReactFlow consuma la data sin depender del dashboard.
-            </p>
-          </div>
-          <span className={`${badgeClass} bg-indigo-100 text-indigo-700`}>Flujos / Nodes / Edges</span>
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {(error as Error).message}
         </div>
+      ) : null}
 
-        <div className="grid gap-3 md:grid-cols-3">
-          {flowTables.map((table) => (
-            <article key={table.id} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+      {isLoading ? (
+        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="h-10 w-full animate-pulse rounded-xl bg-slate-100" />
+          <div className="h-10 w-full animate-pulse rounded-xl bg-slate-100" />
+          <div className="h-10 w-full animate-pulse rounded-xl bg-slate-100" />
+        </div>
+      ) : (
+        <section className="grid gap-4 md:grid-cols-[340px_1fr]">
+          <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
               <div className="flex items-center gap-2 text-slate-900">
-                <Table className="h-4 w-4 text-indigo-600" />
-                <p className="text-sm font-semibold">{table.title}</p>
+                <List className="h-5 w-5 text-indigo-600" />
+                <div>
+                  <p className="text-sm font-semibold">Flujos</p>
+                </div>
               </div>
-              <p className="text-xs text-slate-600">{table.purpose}</p>
-              <div className="flex flex-wrap gap-2">
-                {table.fields.map((field) => (
-                  <span key={field} className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-slate-700">
-                    {field}
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {flows?.map((flow) => {
+                const isActive = flow.id === selectedFlowId
+                return (
+                  <div
+                    key={flow.id}
+                    className={isActive ? 'bg-indigo-50/40' : ''}
+                  >
+                    <button
+                      type="button"
+                      className={`w-full px-5 py-4 text-left transition-colors ${
+                        isActive ? 'text-indigo-900' : 'hover:bg-slate-50'
+                      }`}
+                      onClick={() => setSelectedFlowId(flow.id)}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            {flow.title}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {flow.area || 'Área no asignada'}
+                          </p>
+                        </div>
+                        {flow.type ? (
+                          <span
+                            className={`${badgeClass} bg-slate-900 text-white`}
+                          >
+                            {flow.type}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-2 text-xs text-slate-600 line-clamp-2">
+                        {flow.description}
+                      </p>
+                      {flow.visibility_roles?.length ? (
+                        <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-600">
+                          {flow.visibility_roles.map((role) => (
+                            <span
+                              key={role}
+                              className="rounded-full bg-slate-100 px-3 py-1 font-medium"
+                            >
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </button>
+                    <div className="flex items-center justify-end gap-2 px-5 pb-4">
+                      <a
+                        href={`/diagrams?flowId=${flow.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="button-secondary inline-flex items-center gap-2 text-sm"
+                      >
+                        Abrir
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {selectedFlow ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Detalle</p>
+                    <h3 className="text-2xl font-semibold text-slate-900">
+                      {selectedFlow.title}
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      {selectedFlow.description}
+                    </p>
+                  </div>
+                  <span
+                    className={`${badgeClass} bg-purple-100 text-purple-700`}
+                  >
+                    ReactFlow
                   </span>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-5">
-        <article className="md:col-span-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Network className="h-5 w-5 text-cyan-600" />
-            <div>
-              <p className="text-xs uppercase text-slate-500">Endpoints</p>
-              <h3 className="text-lg font-semibold text-slate-900">API lista para importar y conectar</h3>
-            </div>
-          </div>
-          <ul className="space-y-2 text-sm text-slate-700">
-            {flowEndpoints.map((endpoint) => (
-              <li
-                key={endpoint.path}
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2"
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`${badgeClass} bg-slate-900 text-white`}>{endpoint.method}</span>
-                  <p className="font-semibold text-slate-900">{endpoint.path}</p>
                 </div>
-                <p className="text-xs text-slate-500">{endpoint.detail}</p>
-              </li>
-            ))}
-          </ul>
-        </article>
 
-        <article className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-600" />
-            <div>
-              <p className="text-xs uppercase text-slate-500">Visibilidad</p>
-              <h3 className="text-lg font-semibold text-slate-900">Roles listos para “Mis flujos”</h3>
-            </div>
-          </div>
-          <ul className="space-y-1 text-sm text-slate-700">
-            <li>Roles por nodo guardados en metadata.visibleFor.</li>
-            <li>El dashboard solo describe; la conexión se hará en el canvas.</li>
-            <li>Compatibles con nodes step, decision, event, process, integration.</li>
-          </ul>
-        </article>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-        <article className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="text-xs uppercase text-slate-500">Flujos preparados</p>
-              <h3 className="text-lg font-semibold text-slate-900">Cabeceras listas para ReactFlow</h3>
-            </div>
-            <span className={`${badgeClass} bg-blue-100 text-blue-700`}>sin llamadas activas</span>
-          </div>
-          <div className="space-y-3">
-            {flows?.map((flow) => (
-              <div
-                key={flow.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm text-slate-700"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold text-slate-900">{flow.title}</p>
-                  {flow.classification ? (
-                    <span className={`${badgeClass} bg-slate-900 text-white`}>{flow.classification}</span>
-                  ) : null}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <DetailCard
+                    icon={<Users className="h-4 w-4 text-indigo-600" />}
+                    label="Visibilidad"
+                    value={
+                      selectedFlow.visibility_roles?.join(' · ') ||
+                      'Sin roles asignados'
+                    }
+                  />
+                  <DetailCard
+                    icon={<Info className="h-4 w-4 text-indigo-600" />}
+                    label="Clasificación"
+                    value={selectedFlow.type || 'Sin clasificación'}
+                  />
+                  <DetailCard
+                    label="Área"
+                    value={selectedFlow.area || 'Área no asignada'}
+                  />
+                  <DetailCard
+                    label="Actualización"
+                    value={new Date(
+                      selectedFlow.updated_at,
+                    ).toLocaleDateString()}
+                  />
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span className="rounded-full bg-white px-3 py-1 font-semibold text-slate-700">
-                    {flow.area || 'Área no asignada'}
-                  </span>
-                  {flow.visibilityRoles?.map((role) => (
-                    <span key={role} className="rounded-full bg-white px-3 py-1 font-medium text-slate-700">
-                      {role}
-                    </span>
-                  ))}
+
+                <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 px-4 py-5 text-sm text-slate-700">
+                  <p className="font-semibold text-slate-900">
+                    Visualización en ReactFlow
+                  </p>
+                  <p className="mt-1 text-slate-600">
+                    Usa el botón “Abrir” para cargar este flujo en una hoja
+                    nueva con ReactFlow. Aquí mantenemos el resumen básico
+                    mientras conectamos el canvas visual.
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5 text-indigo-600" />
-            <div>
-              <p className="text-xs uppercase text-slate-500">Edges</p>
-              <h3 className="text-lg font-semibold text-slate-900">Conexiones sincrónicas</h3>
-            </div>
-          </div>
-          <ul className="space-y-2 text-sm text-slate-700">
-            {sampleEdges.map((edge) => (
-              <li key={edge.id} className="rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2">
-                <p className="font-semibold text-slate-900">
-                  {edge.source} → {edge.target}
-                </p>
-                <p className="text-xs text-slate-500">{edge.label}</p>
-                <p className="text-[11px] text-slate-500">Regla: {edge.rule}</p>
-              </li>
-            ))}
-          </ul>
-        </article>
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase text-slate-500">Nodos</p>
-            <h3 className="text-lg font-semibold text-slate-900">Metadata lista para el panel lateral</h3>
-          </div>
-          <span className={`${badgeClass} bg-purple-100 text-purple-700`}>Solo lectura</span>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3 text-sm text-slate-700">
-          {sampleNodes.map((node) => (
-            <article key={node.id} className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-slate-900">{node.label}</p>
-                <span className={`${badgeClass} bg-slate-900 text-white`}>{node.type}</span>
+            ) : (
+              <div className="flex h-full min-h-[240px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                Selecciona un flujo para ver su detalle.
               </div>
-              <p className="text-xs text-slate-500">Sistema: {node.system}</p>
-              <div className="space-y-1 text-xs text-slate-600">
-                <p className="font-semibold text-slate-900">Metadata</p>
-                <p>Notas: {node.metadata.notes}</p>
-                <p>Artefactos: {node.metadata.artifacts.join(', ')}</p>
-                <p>Roles: {node.metadata.roles?.join(', ')}</p>
-                <p>Asignado: {node.metadata.userAssigned || '—'}</p>
-                <p>Visible para: {node.metadata.visibleFor?.join(', ')}</p>
-                <p>
-                  Posición: x{node.position.x} / y{node.position.y} (se guardará al mover nodos)
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+            )}
+          </article>
+        </section>
+      )}
+    </div>
+  )
+}
 
-      <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-slate-900">
-          <Database className="h-5 w-5 text-cyan-600" />
-          <div>
-            <p className="text-xs uppercase text-slate-500">Notas clave</p>
-            <h3 className="text-lg font-semibold">Sincronización futura</h3>
-          </div>
-        </div>
-        <ul className="grid gap-2 md:grid-cols-2 text-sm text-slate-700">
-          {flowNotes.map((note) => (
-            <li key={note} className="rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2">
-              {note}
-            </li>
-          ))}
-        </ul>
-      </section>
+type DetailCardProps = {
+  icon?: ReactNode
+  label: string
+  value: string
+}
+
+function DetailCard({ icon, label, value }: DetailCardProps) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3">
+      {icon ? <div className="mt-[2px]">{icon}</div> : null}
+      <div>
+        <p className="text-xs uppercase text-slate-500">{label}</p>
+        <p className="text-sm font-semibold text-slate-900">{value}</p>
+      </div>
     </div>
   )
 }
