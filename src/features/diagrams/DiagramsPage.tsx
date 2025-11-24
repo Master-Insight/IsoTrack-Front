@@ -1,18 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { DEFAULT_COMPANY } from '../../config/constants'
 import { showAlert } from '../../lib/alerts'
 import type { ArtifactLink } from '../processes/api'
+import { type DiagramData, type DiagramEdge, type DiagramNode, type DiagramRecord } from './api'
 import {
-  fetchDiagramDetail,
-  fetchDiagramLinks,
-  fetchDiagrams,
-  saveDiagramData,
-  type DiagramData,
-  type DiagramEdge,
-  type DiagramNode,
-  type DiagramRecord,
-} from '../../services/diagrams'
+  useDiagramDetailQuery,
+  useDiagramLinksQuery,
+  useDiagramsQuery,
+  useSaveDiagramMutation,
+} from './queries'
 
 const ACCESS_TOKEN_KEY = 'accessToken'
 
@@ -176,65 +173,24 @@ function ArtifactLinkList({ links }: { links: ArtifactLink[] }) {
 }
 
 export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPageProps) {
-  const [diagrams, setDiagrams] = useState<DiagramRecord[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedDiagram, setSelectedDiagram] = useState<DiagramRecord | null>(null)
   const [links, setLinks] = useState<ArtifactLink[]>([])
   const [nodes, setNodes] = useState<DiagramNode[]>(DEFAULT_NODES)
   const [edges, setEdges] = useState<DiagramEdge[]>(DEFAULT_EDGES)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [newEdge, setNewEdge] = useState({ source: '', target: '', label: '' })
+  const [isSessionReady, setIsSessionReady] = useState(false)
+
+  const diagramsQuery = useDiagramsQuery(diagramsEndpoint, { enabled: isSessionReady })
+  const diagrams = diagramsQuery.data?.data || []
+
+  const detailQuery = useDiagramDetailQuery(selectedId || undefined, diagramsEndpoint, { enabled: isSessionReady })
+  const linksQuery = useDiagramLinksQuery(selectedId || undefined, linksEndpoint, { enabled: isSessionReady })
+  const saveMutation = useSaveDiagramMutation()
 
   const activeData: DiagramData = useMemo(() => ({ nodes, edges }), [nodes, edges])
-
-  const loadDiagrams = useCallback(async () => {
-    if (!diagramsEndpoint) return
-    setIsLoading(true)
-    try {
-      const { data } = await fetchDiagrams(diagramsEndpoint)
-      setDiagrams(data)
-      if (data?.length) {
-        setSelectedId(data[0].id)
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo obtener los diagramas'
-      await showAlert({ title: 'Listado no disponible', text: message, icon: 'error' })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [diagramsEndpoint])
-
-  const loadDiagramDetail = useCallback(
-    async (diagramId: string) => {
-      if (!diagramId || !diagramsEndpoint) return
-      setIsLoading(true)
-      try {
-        const detailEndpoint = `${diagramsEndpoint}/${diagramId}`
-        const { data } = await fetchDiagramDetail(detailEndpoint)
-        setSelectedDiagram(data)
-        const diagramData = data.data || { nodes: DEFAULT_NODES, edges: DEFAULT_EDGES }
-        setNodes(diagramData.nodes?.length ? diagramData.nodes : DEFAULT_NODES)
-        setEdges(diagramData.edges?.length ? diagramData.edges : DEFAULT_EDGES)
-        const linksEndpointUrl = `${linksEndpoint}/${diagramId}/links`
-        const fetchedLinks = await fetchDiagramLinks(linksEndpointUrl)
-        setLinks(fetchedLinks)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'No se pudo obtener el diagrama'
-        await showAlert({ title: 'Error al cargar', text: message, icon: 'error' })
-        setSelectedDiagram(null)
-        setLinks([])
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [diagramsEndpoint, linksEndpoint],
-  )
-
-  useEffect(() => {
-    if (!selectedId) return
-    loadDiagramDetail(selectedId)
-  }, [selectedId, loadDiagramDetail])
+  const isSaving = saveMutation.isPending
+  const isLoading = diagramsQuery.isLoading || detailQuery.isFetching
 
   useEffect(() => {
     const checkSession = async () => {
@@ -249,11 +205,43 @@ export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPagePr
         return
       }
 
-      await loadDiagrams()
+      setIsSessionReady(true)
     }
 
     checkSession()
-  }, [loadDiagrams])
+  }, [])
+
+  useEffect(() => {
+    if (!selectedId && diagrams?.length) {
+      setSelectedId(diagrams[0].id)
+    }
+  }, [diagrams, selectedId])
+
+  useEffect(() => {
+    if (diagramsQuery.error instanceof Error) {
+      showAlert({ title: 'Listado no disponible', text: diagramsQuery.error.message, icon: 'error' })
+    }
+  }, [diagramsQuery.error])
+
+  useEffect(() => {
+    if (detailQuery.error instanceof Error) {
+      showAlert({ title: 'Error al cargar', text: detailQuery.error.message, icon: 'error' })
+    }
+  }, [detailQuery.error])
+
+  useEffect(() => {
+    const detail = detailQuery.data?.data
+    if (!detail) return
+
+    setSelectedDiagram(detail)
+    const diagramData = detail.data || { nodes: DEFAULT_NODES, edges: DEFAULT_EDGES }
+    setNodes(diagramData.nodes?.length ? diagramData.nodes : DEFAULT_NODES)
+    setEdges(diagramData.edges?.length ? diagramData.edges : DEFAULT_EDGES)
+  }, [detailQuery.data])
+
+  useEffect(() => {
+    setLinks(linksQuery.data || [])
+  }, [linksQuery.data])
 
   const handleNodePositionChange = (id: string, x: number, y: number) => {
     setNodes((prev) => prev.map((node) => (node.id === id ? { ...node, x, y } : node)))
@@ -279,22 +267,22 @@ export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPagePr
   const handleAddEdge = () => {
     if (!newEdge.source || !newEdge.target) return
     const edgeId = `e-${Date.now()}`
-    setEdges((prev) => [...prev, { id: edgeId, source: newEdge.source, target: newEdge.target, label: newEdge.label || undefined }])
+    setEdges((prev) => [
+      ...prev,
+      { id: edgeId, source: newEdge.source, target: newEdge.target, label: newEdge.label || undefined },
+    ])
     setNewEdge({ source: '', target: '', label: '' })
   }
 
   const handleSave = async () => {
     if (!selectedDiagram) return
-    setIsSaving(true)
+    const endpoint = `${diagramsEndpoint}/${selectedDiagram.id}`
     try {
-      const endpoint = `${diagramsEndpoint}/${selectedDiagram.id}`
-      await saveDiagramData(endpoint, { data: activeData })
+      await saveMutation.mutateAsync({ endpoint, payload: { data: activeData } })
       await showAlert({ title: 'Diagrama guardado', text: 'Los nodos y vínculos se guardaron como JSON.', icon: 'success' })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo guardar'
       await showAlert({ title: 'Error al guardar', text: message, icon: 'error' })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -334,17 +322,14 @@ export function DiagramsPage({ diagramsEndpoint, linksEndpoint }: DiagramsPagePr
   const handleExportSvg = async () => {
     if (!selectedDiagram) return
     const svg = buildSvgExport()
-    setIsSaving(true)
+    const endpoint = `${diagramsEndpoint}/${selectedDiagram.id}`
     try {
-      const endpoint = `${diagramsEndpoint}/${selectedDiagram.id}`
-      await saveDiagramData(endpoint, { data: activeData, svg_export: svg })
+      await saveMutation.mutateAsync({ endpoint, payload: { data: activeData, svg_export: svg } })
       await showAlert({ title: 'SVG listo', text: 'Exportamos una versión con branding para auditar.', icon: 'success' })
       setSelectedDiagram((prev) => (prev ? { ...prev, svg_export: svg } : prev))
     } catch (error) {
       const message = error instanceof Error ? error.message : 'No se pudo exportar'
       await showAlert({ title: 'Exportación fallida', text: message, icon: 'error' })
-    } finally {
-      setIsSaving(false)
     }
   }
 

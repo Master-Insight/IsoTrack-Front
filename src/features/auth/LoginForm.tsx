@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react'
 import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from '../../config/constants'
 import { showAlert } from '../../lib/alerts'
 import { useAuthStore } from './store'
-import type { LoginPayload, UserProfile } from '../../services/auth'
-import { fetchProfile, login, persistTokens } from '../../services/auth'
+import type { LoginPayload, UserProfile } from './api'
+import { fetchProfile, login, persistTokens } from './api'
 
 const loginEndpoint = `${API_URL}/users/login`
 const profileEndpoint = `${API_URL}/users/me`

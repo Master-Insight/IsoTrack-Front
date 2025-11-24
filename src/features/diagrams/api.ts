@@ -1,7 +1,7 @@
 import axios, { type AxiosError } from 'axios'
 
-import httpClient from './httpClient'
-import type { ArtifactLink } from './processes'
+import httpClient from '../../services/httpClient'
+import type { ArtifactLink } from '../processes/api'
 
 export type DiagramType = 'organigrama' | 'flujo'
 
@@ -64,6 +64,11 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback
 }
 
+/**
+ * GET /diagrams
+ * - Envía: sin body; headers y baseURL configurados en httpClient.
+ * - Espera recibir: listado de diagramas con metadatos y, opcionalmente, datos incrustados.
+ */
 export async function fetchDiagrams(endpoint: string): Promise<DiagramListResponse> {
   try {
     const { data } = await httpClient.get<DiagramListResponse>(endpoint)
@@ -74,6 +79,11 @@ export async function fetchDiagrams(endpoint: string): Promise<DiagramListRespon
   }
 }
 
+/**
+ * GET /diagrams/:id
+ * - Envía: sin body; el ID del diagrama via path param.
+ * - Espera recibir: detalle del diagrama con data serializada (nodes/edges) y vínculos opcionales.
+ */
 export async function fetchDiagramDetail(endpoint: string): Promise<DiagramDetailResponse> {
   try {
     const { data } = await httpClient.get<DiagramDetailResponse>(endpoint)
@@ -84,6 +94,12 @@ export async function fetchDiagramDetail(endpoint: string): Promise<DiagramDetai
   }
 }
 
+/**
+ * GET /diagrams/:id/links
+ * - Envía: sin body.
+ * - Espera recibir: lista de vínculos artefact_links asociados al diagrama.
+ * - Ejemplo de respuesta: { success: true, data: [{ id, to_id, to_type, to_name }] }
+ */
 export async function fetchDiagramLinks(endpoint: string) {
   try {
     const { data } = await httpClient.get<{ success: boolean; data: ArtifactLink[] }>(endpoint)
@@ -94,6 +110,11 @@ export async function fetchDiagramLinks(endpoint: string) {
   }
 }
 
+/**
+ * PUT /diagrams/:id
+ * - Envía: payload con data (nodes, edges) y opcionalmente svg_export generado en el cliente.
+ * - Espera recibir: detalle actualizado del diagrama con los campos normalizados por la API.
+ */
 export async function saveDiagramData(endpoint: string, payload: DiagramUpdatePayload) {
   try {
     const { data } = await httpClient.put<DiagramDetailResponse>(endpoint, payload)

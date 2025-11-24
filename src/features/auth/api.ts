@@ -1,6 +1,6 @@
 import axios, { type AxiosError } from 'axios'
 
-import httpClient, { clearSessionTokens, refreshToken, setAccessToken, setRefreshToken } from './httpClient'
+import httpClient, { clearSessionTokens, refreshToken, setAccessToken, setRefreshToken } from '../../services/httpClient'
 
 export type LoginPayload = {
   email: string
@@ -58,6 +58,11 @@ export function persistTokens(accessToken?: string, refresh_token?: string) {
   }
 }
 
+/**
+ * POST /users/login
+ * - Envía: credenciales { email, password }.
+ * - Espera recibir: tokens de sesión (access + refresh) y perfil mínimo para precargar estado global.
+ */
 export async function login(endpoint: string, payload: LoginPayload): Promise<LoginResponse> {
   try {
     const { data } = await httpClient.post<LoginResponse>(endpoint, payload, {
@@ -76,6 +81,11 @@ export async function login(endpoint: string, payload: LoginPayload): Promise<Lo
   }
 }
 
+/**
+ * GET /users/me
+ * - Envía: sin body; requiere Authorization con el access token vigente.
+ * - Espera recibir: perfil completo del usuario logueado.
+ */
 export async function fetchProfile(endpoint: string): Promise<ProfileResponse> {
   try {
     const { data } = await httpClient.get<ProfileResponse>(endpoint)
@@ -86,6 +96,11 @@ export async function fetchProfile(endpoint: string): Promise<ProfileResponse> {
   }
 }
 
+/**
+ * POST /users/logout
+ * - Envía: sin body; la cookie de refresh acompaña la petición.
+ * - Espera recibir: estado de cierre de sesión y limpia tokens locales.
+ */
 export async function logout(endpoint: string): Promise<LogoutResponse> {
   try {
     const { data } = await httpClient.post<LogoutResponse>(endpoint)
