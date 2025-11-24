@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 
 import { API_URL, DEFAULT_COMPANY, DEFAULT_USER } from '@/config/constants'
 import { showAlert } from '@/lib/alerts'
@@ -31,6 +32,7 @@ export function LoginForm() {
 
   const setProfile = useAuthStore((state) => state.setProfile)
   const setStatusStore = useAuthStore((state) => state.setStatus)
+  const navigate = useNavigate()
 
   const isDisabled = useMemo(() => {
     return isSubmitting || !payload.email || !payload.password
@@ -92,6 +94,8 @@ export function LoginForm() {
           text: 'Estamos preparando tu panel principal...',
           icon: 'success',
         })
+
+        void navigate({ to: '/_private/dashboard' })
       }
     } catch (error) {
       const message =
