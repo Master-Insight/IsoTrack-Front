@@ -15,6 +15,7 @@ import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as PrivateUserRouteImport } from './routes/_private/user'
 import { Route as PrivateProcessesRouteImport } from './routes/_private/processes'
+import { Route as PrivateFlowsRouteImport } from './routes/_private/flows'
 import { Route as PrivateDocumentsRouteImport } from './routes/_private/documents'
 import { Route as PrivateDiagramsRouteImport } from './routes/_private/diagrams'
 import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
@@ -47,6 +48,11 @@ const PrivateProcessesRoute = PrivateProcessesRouteImport.update({
   path: '/processes',
   getParentRoute: () => PrivateRoute,
 } as any)
+const PrivateFlowsRoute = PrivateFlowsRouteImport.update({
+  id: '/flows',
+  path: '/flows',
+  getParentRoute: () => PrivateRoute,
+} as any)
 const PrivateDocumentsRoute = PrivateDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof PrivateDashboardRoute
   '/diagrams': typeof PrivateDiagramsRoute
   '/documents': typeof PrivateDocumentsRoute
+  '/flows': typeof PrivateFlowsRoute
   '/processes': typeof PrivateProcessesRoute
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof PrivateDashboardRoute
   '/diagrams': typeof PrivateDiagramsRoute
   '/documents': typeof PrivateDocumentsRoute
+  '/flows': typeof PrivateFlowsRoute
   '/processes': typeof PrivateProcessesRoute
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/_private/dashboard': typeof PrivateDashboardRoute
   '/_private/diagrams': typeof PrivateDiagramsRoute
   '/_private/documents': typeof PrivateDocumentsRoute
+  '/_private/flows': typeof PrivateFlowsRoute
   '/_private/processes': typeof PrivateProcessesRoute
   '/_private/user': typeof PrivateUserRoute
   '/_public/login': typeof PublicLoginRoute
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagrams'
     | '/documents'
+    | '/flows'
     | '/processes'
     | '/user'
     | '/login'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagrams'
     | '/documents'
+    | '/flows'
     | '/processes'
     | '/user'
     | '/login'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/_private/dashboard'
     | '/_private/diagrams'
     | '/_private/documents'
+    | '/_private/flows'
     | '/_private/processes'
     | '/_private/user'
     | '/_public/login'
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateProcessesRouteImport
       parentRoute: typeof PrivateRoute
     }
+    '/_private/flows': {
+      id: '/_private/flows'
+      path: '/flows'
+      fullPath: '/flows'
+      preLoaderRoute: typeof PrivateFlowsRouteImport
+      parentRoute: typeof PrivateRoute
+    }
     '/_private/documents': {
       id: '/_private/documents'
       path: '/documents'
@@ -202,6 +221,7 @@ interface PrivateRouteChildren {
   PrivateDashboardRoute: typeof PrivateDashboardRoute
   PrivateDiagramsRoute: typeof PrivateDiagramsRoute
   PrivateDocumentsRoute: typeof PrivateDocumentsRoute
+  PrivateFlowsRoute: typeof PrivateFlowsRoute
   PrivateProcessesRoute: typeof PrivateProcessesRoute
   PrivateUserRoute: typeof PrivateUserRoute
 }
@@ -210,6 +230,7 @@ const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateDashboardRoute: PrivateDashboardRoute,
   PrivateDiagramsRoute: PrivateDiagramsRoute,
   PrivateDocumentsRoute: PrivateDocumentsRoute,
+  PrivateFlowsRoute: PrivateFlowsRoute,
   PrivateProcessesRoute: PrivateProcessesRoute,
   PrivateUserRoute: PrivateUserRoute,
 }
