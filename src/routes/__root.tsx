@@ -64,8 +64,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  </MyRouterContext>{
+    /* Ignore attribute mismatches introduced by browser extensions during hydration */
+  }
   return (
-    <html lang="en">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
