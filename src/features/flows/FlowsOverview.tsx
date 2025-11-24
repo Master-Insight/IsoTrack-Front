@@ -1,4 +1,4 @@
-import { ExternalLink, Info, List, Users } from 'lucide-react'
+import { ExternalLink, Info, List, Tag, Users } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { useFlowsQuery } from './queries'
@@ -12,11 +12,61 @@ export function FlowsOverview() {
 
   const [selectedFlowId, setSelectedFlowId] = useState<string | null>(null)
 
+  // Define Filter
+  const [typeFilter, setTypeFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
+  const [areaFilter, setAreaFilter] = useState('')
+
+  const typeOptions = useMemo(
+    () =>
+      Array.from(
+        new Set((flows || []).map((flow) => flow.type).filter(Boolean)),
+      ) as string[],
+    [flows],
+  )
+
+  const tagOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (flows || []).flatMap((flow) => flow.tags || []).filter(Boolean),
+        ),
+      ),
+    [flows],
+  )
+
+  const areaOptions = useMemo(
+    () =>
+      Array.from(
+        new Set((flows || []).map((flow) => flow.area).filter(Boolean)),
+      ) as string[],
+    [flows],
+  )
+
+  const filteredFlows = useMemo(() => {
+    if (!flows) return []
+
+    return flows.filter((flow) => {
+      const matchesType = !typeFilter || flow.type === typeFilter
+      const matchesTag = !tagFilter || flow.tags?.includes(tagFilter)
+      const matchesArea = !areaFilter || flow.area === areaFilter
+
+      return matchesType && matchesTag && matchesArea
+    })
+  }, [areaFilter, flows, tagFilter, typeFilter])
+
   useEffect(() => {
-    if (flows?.length && !selectedFlowId) {
-      setSelectedFlowId(flows[0].id)
+    if (!filteredFlows.length) {
+      setSelectedFlowId(null)
+      return
     }
-  }, [flows, selectedFlowId])
+    if (
+      !selectedFlowId ||
+      !filteredFlows.some((flow) => flow.id === selectedFlowId)
+    ) {
+      setSelectedFlowId(filteredFlows[0].id)
+    }
+  }, [filteredFlows, selectedFlowId])
 
   useEffect(() => {
     // Debug: conocer la data que llega desde el backend
@@ -24,23 +74,52 @@ export function FlowsOverview() {
   }, [flows])
 
   const selectedFlow: FlowRecord | undefined = useMemo(
-    () => flows?.find((flow) => flow.id === selectedFlowId),
-    [flows, selectedFlowId],
+    () => filteredFlows.find((flow) => flow.id === selectedFlowId),
+    [filteredFlows, selectedFlowId],
   )
 
   return (
     <div className="space-y-4">
+      {/* TITLES */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-3xl font-semibold text-slate-900">Flujos</h2>
-            <p className="text-sm text-slate-600">
-              Listado de flujos disponibles.
-            </p>
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-semibold text-slate-900">Flujos</h2>
+              <p className="text-sm text-slate-600">
+                Listado de flujos disponibles.
+              </p>
+            </div>
+            <span className={`${badgeClass} bg-indigo-100 text-indigo-700`}>
+              {isFetching
+                ? 'Actualizando...'
+                : `${filteredFlows.length} de ${flows?.length ?? 0} flujos`}
+            </span>
           </div>
-          <span className={`${badgeClass} bg-indigo-100 text-indigo-700`}>
-            {isFetching ? 'Actualizando...' : `${flows?.length ?? 0} flujos`}
-          </span>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <FilterSelect
+              label="Clasificación"
+              value={typeFilter}
+              onChange={setTypeFilter}
+              placeholder="Todas"
+              options={typeOptions}
+            />
+            <FilterSelect
+              label="Tag"
+              value={tagFilter}
+              onChange={setTagFilter}
+              placeholder="Todos"
+              options={tagOptions}
+            />
+            <FilterSelect
+              label="Área"
+              value={areaFilter}
+              onChange={setAreaFilter}
+              placeholder="Todas"
+              options={areaOptions}
+            />
+          </div>
         </div>
       </section>
 
@@ -58,81 +137,76 @@ export function FlowsOverview() {
         </div>
       ) : (
         <section className="grid gap-4 md:grid-cols-[340px_1fr]">
+          {/* SIDE LIST */}
           <article className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {/* SIDE TITLE */}
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
               <div className="flex items-center gap-2 text-slate-900">
                 <List className="h-5 w-5 text-indigo-600" />
-                <div>
-                  <p className="text-sm font-semibold">Flujos</p>
-                </div>
+                <p className="text-sm font-semibold">Flujos</p>
               </div>
             </div>
 
+            {/* SIDE MAP LIST */}
             <div className="divide-y divide-slate-100">
-              {flows?.map((flow) => {
-                const isActive = flow.id === selectedFlowId
-                return (
-                  <div
-                    key={flow.id}
-                    className={isActive ? 'bg-indigo-50/40' : ''}
-                  >
-                    <button
-                      type="button"
-                      className={`w-full px-5 py-4 text-left transition-colors ${
-                        isActive ? 'text-indigo-900' : 'hover:bg-slate-50'
-                      }`}
-                      onClick={() => setSelectedFlowId(flow.id)}
+              {filteredFlows.length ? (
+                filteredFlows.map((flow) => {
+                  const isActive = flow.id === selectedFlowId
+                  return (
+                    <div
+                      key={flow.id}
+                      className={isActive ? 'bg-indigo-50/40' : ''}
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-slate-900">
-                            {flow.title}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {flow.area || 'Área no asignada'}
-                          </p>
-                        </div>
-                        {flow.type ? (
-                          <span
-                            className={`${badgeClass} bg-slate-900 text-white`}
-                          >
-                            {flow.type}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="mt-2 text-xs text-slate-600 line-clamp-2">
-                        {flow.description}
-                      </p>
-                      {flow.visibility_roles?.length ? (
-                        <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-600">
-                          {flow.visibility_roles.map((role) => (
-                            <span
-                              key={role}
-                              className="rounded-full bg-slate-100 px-3 py-1 font-medium"
-                            >
-                              {role}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </button>
-                    <div className="flex items-center justify-end gap-2 px-5 pb-4">
-                      <a
-                        href={`/diagrams?flowId=${flow.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="button-secondary inline-flex items-center gap-2 text-sm"
+                      <button
+                        type="button"
+                        className={`w-full px-5 py-4 text-left transition-colors ${
+                          isActive ? 'text-indigo-900' : 'hover:bg-slate-50'
+                        }`}
+                        onClick={() => setSelectedFlowId(flow.id)}
                       >
-                        Abrir
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <p className="font-semibold text-slate-900">
+                              {flow.title}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {flow.area || 'Área no asignada'}
+                            </p>
+                          </div>
+                          {flow.type ? (
+                            <span
+                              className={`${badgeClass} bg-slate-900 text-white`}
+                            >
+                              {flow.type}
+                            </span>
+                          ) : null}
+                          <span
+                            className={`${badgeClass} bg-indigo-700 text-white`}
+                          >
+                            {getVisibilityLabel(flow.visibility)}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+                          {flow.tags && flow.tags.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                              <Tag className="h-3 w-3" />
+                              {flow.tags.join(', ')}
+                            </span>
+                          )}
+                        </div>
+                      </button>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              ) : (
+                <p className="p-5 text-sm text-slate-500">
+                  No se encontraron flujos.
+                </p>
+              )}
             </div>
           </article>
 
+          {/* SELECT FLOW */}
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             {selectedFlow ? (
               <div className="space-y-4">
@@ -157,10 +231,7 @@ export function FlowsOverview() {
                   <DetailCard
                     icon={<Users className="h-4 w-4 text-indigo-600" />}
                     label="Visibilidad"
-                    value={
-                      selectedFlow.visibility_roles?.join(' · ') ||
-                      'Sin roles asignados'
-                    }
+                    value={getVisibilityLabel(selectedFlow.visibility)}
                   />
                   <DetailCard
                     icon={<Info className="h-4 w-4 text-indigo-600" />}
@@ -176,6 +247,15 @@ export function FlowsOverview() {
                     value={new Date(
                       selectedFlow.updated_at,
                     ).toLocaleDateString()}
+                  />
+                  <DetailCard
+                    icon={<Tag className="h-4 w-4 text-indigo-600" />}
+                    label="Tags"
+                    value={
+                      selectedFlow.tags?.length
+                        ? selectedFlow.tags.join(' · ')
+                        : 'Sin tags asignados'
+                    }
                   />
                 </div>
 
@@ -218,4 +298,45 @@ function DetailCard({ icon, label, value }: DetailCardProps) {
       </div>
     </div>
   )
+}
+
+type FilterSelectProps = {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+  options: string[]
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  placeholder,
+  options,
+}: FilterSelectProps) {
+  return (
+    <label className="flex flex-col gap-1 text-sm text-slate-700">
+      <span className="font-semibold">{label}</span>
+      <select
+        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+function getVisibilityLabel(visibility: string) {
+  if (visibility === 'public') return 'Público'
+  if (visibility === 'area') return 'Visible por área'
+  if (visibility === 'private') return 'Privado'
+  return visibility
 }
