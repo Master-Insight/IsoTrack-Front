@@ -25,9 +25,9 @@ export const DEFAULT_USER = {
 }
 
 export const NAV_ITEMS = [
-  { label: 'Inicio', href: '/' },
+  { label: 'Dashboard', href: '/dashboard' },
   { label: 'Documentos', href: '/documents' },
   { label: 'Procesos', href: '/processes' },
   { label: 'Diagramas', href: '/diagrams' },
-  { label: 'Login', href: '/login' },
+  { label: 'Perfil', href: '/user' },
 ]

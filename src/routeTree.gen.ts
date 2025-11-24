@@ -9,153 +9,230 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UserRouteImport } from './routes/user'
-import { Route as ProcessesRouteImport } from './routes/processes'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as DocumentsRouteImport } from './routes/documents'
-import { Route as DiagramsRouteImport } from './routes/diagrams'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicRouteImport } from './routes/_public'
+import { Route as PrivateRouteImport } from './routes/_private'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicLoginRouteImport } from './routes/_public/login'
+import { Route as PrivateUserRouteImport } from './routes/_private/user'
+import { Route as PrivateProcessesRouteImport } from './routes/_private/processes'
+import { Route as PrivateDocumentsRouteImport } from './routes/_private/documents'
+import { Route as PrivateDiagramsRouteImport } from './routes/_private/diagrams'
+import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
 
-const UserRoute = UserRouteImport.update({
-  id: '/user',
-  path: '/user',
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProcessesRoute = ProcessesRouteImport.update({
-  id: '/processes',
-  path: '/processes',
+const PrivateRoute = PrivateRouteImport.update({
+  id: '/_private',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocumentsRoute = DocumentsRouteImport.update({
-  id: '/documents',
-  path: '/documents',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagramsRoute = DiagramsRouteImport.update({
-  id: '/diagrams',
-  path: '/diagrams',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLoginRoute = PublicLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PrivateUserRoute = PrivateUserRouteImport.update({
+  id: '/user',
+  path: '/user',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateProcessesRoute = PrivateProcessesRouteImport.update({
+  id: '/processes',
+  path: '/processes',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateDocumentsRoute = PrivateDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateDiagramsRoute = PrivateDiagramsRouteImport.update({
+  id: '/diagrams',
+  path: '/diagrams',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateDashboardRoute = PrivateDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PrivateRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/diagrams': typeof DiagramsRoute
-  '/documents': typeof DocumentsRoute
-  '/login': typeof LoginRoute
-  '/processes': typeof ProcessesRoute
-  '/user': typeof UserRoute
+  '/dashboard': typeof PrivateDashboardRoute
+  '/diagrams': typeof PrivateDiagramsRoute
+  '/documents': typeof PrivateDocumentsRoute
+  '/processes': typeof PrivateProcessesRoute
+  '/user': typeof PrivateUserRoute
+  '/login': typeof PublicLoginRoute
+  '/': typeof PublicIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/diagrams': typeof DiagramsRoute
-  '/documents': typeof DocumentsRoute
-  '/login': typeof LoginRoute
-  '/processes': typeof ProcessesRoute
-  '/user': typeof UserRoute
+  '/dashboard': typeof PrivateDashboardRoute
+  '/diagrams': typeof PrivateDiagramsRoute
+  '/documents': typeof PrivateDocumentsRoute
+  '/processes': typeof PrivateProcessesRoute
+  '/user': typeof PrivateUserRoute
+  '/login': typeof PublicLoginRoute
+  '/': typeof PublicIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/diagrams': typeof DiagramsRoute
-  '/documents': typeof DocumentsRoute
-  '/login': typeof LoginRoute
-  '/processes': typeof ProcessesRoute
-  '/user': typeof UserRoute
+  '/_private': typeof PrivateRouteWithChildren
+  '/_public': typeof PublicRouteWithChildren
+  '/_private/dashboard': typeof PrivateDashboardRoute
+  '/_private/diagrams': typeof PrivateDiagramsRoute
+  '/_private/documents': typeof PrivateDocumentsRoute
+  '/_private/processes': typeof PrivateProcessesRoute
+  '/_private/user': typeof PrivateUserRoute
+  '/_public/login': typeof PublicLoginRoute
+  '/_public/': typeof PublicIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
+    | '/dashboard'
     | '/diagrams'
     | '/documents'
-    | '/login'
     | '/processes'
     | '/user'
+    | '/login'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diagrams' | '/documents' | '/login' | '/processes' | '/user'
+  to:
+    | '/dashboard'
+    | '/diagrams'
+    | '/documents'
+    | '/processes'
+    | '/user'
+    | '/login'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/diagrams'
-    | '/documents'
-    | '/login'
-    | '/processes'
-    | '/user'
+    | '/_private'
+    | '/_public'
+    | '/_private/dashboard'
+    | '/_private/diagrams'
+    | '/_private/documents'
+    | '/_private/processes'
+    | '/_private/user'
+    | '/_public/login'
+    | '/_public/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DiagramsRoute: typeof DiagramsRoute
-  DocumentsRoute: typeof DocumentsRoute
-  LoginRoute: typeof LoginRoute
-  ProcessesRoute: typeof ProcessesRoute
-  UserRoute: typeof UserRoute
+  PrivateRoute: typeof PrivateRouteWithChildren
+  PublicRoute: typeof PublicRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/user': {
-      id: '/user'
-      path: '/user'
-      fullPath: '/user'
-      preLoaderRoute: typeof UserRouteImport
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/processes': {
-      id: '/processes'
-      path: '/processes'
-      fullPath: '/processes'
-      preLoaderRoute: typeof ProcessesRouteImport
+    '/_private': {
+      id: '/_private'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PrivateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/documents': {
-      id: '/documents'
-      path: '/documents'
-      fullPath: '/documents'
-      preLoaderRoute: typeof DocumentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagrams': {
-      id: '/diagrams'
-      path: '/diagrams'
-      fullPath: '/diagrams'
-      preLoaderRoute: typeof DiagramsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/login': {
+      id: '/_public/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof PublicLoginRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_private/user': {
+      id: '/_private/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof PrivateUserRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/processes': {
+      id: '/_private/processes'
+      path: '/processes'
+      fullPath: '/processes'
+      preLoaderRoute: typeof PrivateProcessesRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/documents': {
+      id: '/_private/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof PrivateDocumentsRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/diagrams': {
+      id: '/_private/diagrams'
+      path: '/diagrams'
+      fullPath: '/diagrams'
+      preLoaderRoute: typeof PrivateDiagramsRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/dashboard': {
+      id: '/_private/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof PrivateDashboardRouteImport
+      parentRoute: typeof PrivateRoute
     }
   }
 }
 
+interface PrivateRouteChildren {
+  PrivateDashboardRoute: typeof PrivateDashboardRoute
+  PrivateDiagramsRoute: typeof PrivateDiagramsRoute
+  PrivateDocumentsRoute: typeof PrivateDocumentsRoute
+  PrivateProcessesRoute: typeof PrivateProcessesRoute
+  PrivateUserRoute: typeof PrivateUserRoute
+}
+
+const PrivateRouteChildren: PrivateRouteChildren = {
+  PrivateDashboardRoute: PrivateDashboardRoute,
+  PrivateDiagramsRoute: PrivateDiagramsRoute,
+  PrivateDocumentsRoute: PrivateDocumentsRoute,
+  PrivateProcessesRoute: PrivateProcessesRoute,
+  PrivateUserRoute: PrivateUserRoute,
+}
+
+const PrivateRouteWithChildren =
+  PrivateRoute._addFileChildren(PrivateRouteChildren)
+
+interface PublicRouteChildren {
+  PublicLoginRoute: typeof PublicLoginRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicLoginRoute: PublicLoginRoute,
+  PublicIndexRoute: PublicIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DiagramsRoute: DiagramsRoute,
-  DocumentsRoute: DocumentsRoute,
-  LoginRoute: LoginRoute,
-  ProcessesRoute: ProcessesRoute,
-  UserRoute: UserRoute,
+  PrivateRoute: PrivateRouteWithChildren,
+  PublicRoute: PublicRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
