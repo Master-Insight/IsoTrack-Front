@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Lock, ShieldCheck } from 'lucide-react'
 
 import Header from '../Header'
 import { useAuthStore } from '@/features/auth/store'
+import { restoreSessionFromStorage } from '@/features/auth/session'
 
 interface PrivateLayoutProps {
   title: string
@@ -17,6 +19,10 @@ export function PrivateLayout({
 }: PrivateLayoutProps) {
   const { status, hydrateFromDemo } = useAuthStore()
   const isReady = status === 'ready'
+
+  useEffect(() => {
+    restoreSessionFromStorage()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white">

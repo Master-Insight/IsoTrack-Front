@@ -33,13 +33,27 @@ export function hydrateProfileFromStorage() {
   }
 }
 
-export function hasStoredSession() {
-  return Boolean(getStoredAccessToken()) || hydrateProfileFromStorage()
+function hydrateTokens() {
+  if (!isBrowser) return false
+
+  const storedAccessToken = getStoredAccessToken()
+  if (!storedAccessToken) return false
+
+  const { setStatus } = useAuthStore.getState()
+  setStatus('ready')
+
+  return true
+}
+
+export function restoreSessionFromStorage() {
+  return hydrateProfileFromStorage() || hydrateTokens()
 }
 
 export function hasAvailableSession() {
+  if (!isBrowser) return false
+
   const { status } = useAuthStore.getState()
   const hasActiveSession = status === 'ready'
 
-  return hasActiveSession || hasStoredSession()
+  return hasActiveSession || restoreSessionFromStorage()
 }
