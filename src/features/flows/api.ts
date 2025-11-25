@@ -20,6 +20,9 @@ export type FlowApiRecord = {
   area: string | null
   visibility: string
   visibility_roles: string[] | null
+  layout_mode?: 'auto' | 'manual'
+  default_lane_mode?: 'system' | 'area' | null
+  metadata?: Record<string, unknown> | null
   company_id: string
   created_at: string
   updated_at: string
@@ -33,6 +36,12 @@ type FlowNodeApiRecord = {
   code: string
   metadata: Record<string, unknown> | null
   position: { x: number; y: number } | null
+  lane: string | null
+  icon: string | null
+  color: string | null
+  width: number | null
+  height: number | null
+  order_index: number | null
   flow_id: string
   company_id: string
   created_at: string
@@ -45,6 +54,8 @@ type FlowEdgeApiRecord = {
   target_node: string | null
   label: string | null
   metadata: Record<string, unknown> | null
+  type: string | null
+  style: Record<string, unknown> | null
   flow_id: string
   company_id: string
   created_at: string
@@ -61,6 +72,9 @@ function normalizeFlowRecord(apiRecord: FlowApiRecord): FlowRecord {
     area: apiRecord.area,
     visibility: apiRecord.visibility,
     visibility_roles: apiRecord.visibility_roles,
+    layout_mode: apiRecord.layout_mode,
+    default_lane_mode: apiRecord.default_lane_mode,
+    metadata: apiRecord.metadata,
     company_id: apiRecord.company_id,
     created_at: apiRecord.created_at,
     updated_at: apiRecord.updated_at,

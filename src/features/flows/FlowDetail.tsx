@@ -12,6 +12,7 @@ import {
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
+import dagre from 'dagre'
 import '@xyflow/react/dist/style.css'
 import { Link } from '@tanstack/react-router'
 import {
@@ -41,6 +42,8 @@ import type {
 import { useFlowDetailQuery } from './queries'
 
 const badgeClass = 'badge px-3 py-1 rounded-full text-xs font-semibold'
+const DEFAULT_NODE_WIDTH = 240
+const DEFAULT_NODE_HEIGHT = 80
 
 type FlowDetailProps = {
   flowId: string
@@ -53,6 +56,8 @@ type FlowNodeData = {
   system: string
   metadata?: FlowNodeMetadata | null
   code?: string
+  width?: number | null
+  height?: number | null
 }
 
 type FlowViewPanelProps = {
@@ -88,6 +93,41 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
 
   const { data: flow, isLoading, error } = useFlowDetailQuery(flowId)
 
+  const shouldAutoLayout = useMemo(
+    () => (flow?.layout_mode ?? 'manual') === 'auto',
+    [flow?.layout_mode],
+  )
+
+  const dagreGraph = useMemo(() => {
+    if (!shouldAutoLayout || !flow?.nodes?.length) return null
+
+    const graph = new dagre.graphlib.Graph()
+    graph.setDefaultEdgeLabel(() => ({}))
+    graph.setGraph({
+      rankdir: 'TB',
+      nodesep: 120,
+      ranksep: 160,
+      marginx: 40,
+      marginy: 40,
+    })
+
+    flow.nodes.forEach((node) => {
+      graph.setNode(node.id, {
+        width: node.width ?? DEFAULT_NODE_WIDTH,
+        height: node.height ?? DEFAULT_NODE_HEIGHT,
+      })
+    })
+
+    flow.edges
+      ?.filter((edge) => edge.source_node && edge.target_node)
+      .forEach((edge) => {
+        graph.setEdge(edge.source_node as string, edge.target_node as string)
+      })
+
+    dagre.layout(graph)
+    return graph
+  }, [flow?.edges, flow?.nodes, shouldAutoLayout])
+
   useEffect(() => {
     if (!flow) return
     console.log('detalle flujo', flow)
@@ -117,12 +157,24 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
 
     return flow.nodes.map((node, index) => {
       const typeConfig = nodeTypeStyles[node.type] || nodeTypeStyles.step
-      const position =
-        node.position ||
-        ({
+      const width = node.width ?? DEFAULT_NODE_WIDTH
+      const height = node.height ?? DEFAULT_NODE_HEIGHT
+      let position = node.position || null
+
+      if (shouldAutoLayout && dagreGraph) {
+        const dagreNode = dagreGraph.node(node.id)
+        position = {
+          x: (dagreNode?.x ?? 0) - width / 2,
+          y: (dagreNode?.y ?? 0) - height / 2,
+        }
+      }
+
+      if (!position) {
+        position = {
           x: (index % 3) * 260,
           y: Math.floor(index / 3) * 180,
-        } satisfies Position)
+        }
+      }
 
       const isDimmed = hoveredNodeId && hoveredNodeId !== node.id
 
@@ -130,6 +182,8 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
         id: node.id,
         type: 'flowNode',
         position,
+        width,
+        height,
         selectable: true,
         draggable: false,
         data: {
@@ -139,6 +193,8 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
           system: node.system,
           metadata: node.metadata,
           code: node.code,
+          width,
+          height,
         },
         style: {
           border: `1px solid ${typeConfig.color}22`,
@@ -152,7 +208,7 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
         },
       }
     })
-  }, [flow?.nodes, hoveredNodeId])
+  }, [flow?.nodes, hoveredNodeId, dagreGraph, shouldAutoLayout])
 
   const reactFlowEdges: Edge[] = useMemo(() => {
     if (!flow?.edges) return []
@@ -178,6 +234,7 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
           id: edge.id,
           source: edge.source_node as string,
           target: edge.target_node as string,
+          type: edge.type ?? 'smoothstep',
           label: edge.label ?? undefined,
           animated: Boolean(variantConfig.animated),
           style: {
