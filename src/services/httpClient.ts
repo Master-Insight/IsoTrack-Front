@@ -7,31 +7,49 @@ export const REFRESH_TOKEN_KEY = 'refreshToken'
 
 const isBrowser = typeof window !== 'undefined'
 
+/**
+ * Pequeño guard para evitar guardar cadenas vacías o valores corruptos en sessionStorage.
+ */
 function isValidJwt(token: string | null): token is string {
   return Boolean(token && token.startsWith('eyJ'))
 }
 
+/**
+ * Lee el access token almacenado en sessionStorage.
+ */
 export function getStoredAccessToken() {
   if (!isBrowser) return null
   return sessionStorage.getItem(ACCESS_TOKEN_KEY)
 }
 
+/**
+ * Persist access token solo cuando luce como un JWT.
+ */
 export function setAccessToken(token: string | null) {
   if (!isBrowser || !isValidJwt(token)) return
   sessionStorage.setItem(ACCESS_TOKEN_KEY, token)
 }
 
+/**
+ * Lee el refresh token almacenado en sessionStorage.
+ */
 export function getStoredRefreshToken() {
   if (!isBrowser) return null
   return sessionStorage.getItem(REFRESH_TOKEN_KEY)
 }
 
+/**
+ * Persist refresh token y asegura la cookie paralela utilizada por el backend.
+ */
 export function setRefreshToken(token: string | null) {
   if (!isBrowser || !isValidJwt(token)) return
   sessionStorage.setItem(REFRESH_TOKEN_KEY, token)
   document.cookie = `refreshToken=${token}; Path=/; SameSite=Strict; Secure`
 }
 
+/**
+ * Elimina tokens de sessionStorage y borra la cookie httpOnly espejo.
+ */
 export function clearSessionTokens() {
   if (!isBrowser) return
   sessionStorage.removeItem(ACCESS_TOKEN_KEY)
@@ -39,6 +57,10 @@ export function clearSessionTokens() {
   document.cookie = 'refreshToken=; Max-Age=0; Path=/; SameSite=Strict; Secure'
 }
 
+/**
+ * Solicita un nuevo access token usando el refresh token guardado.
+ * Lanza un Error con mensaje de usuario en caso de no poder renovarlo.
+ */
 export async function refreshToken() {
   const refresh = getStoredRefreshToken()
   if (!refresh) {
@@ -61,6 +83,9 @@ export async function refreshToken() {
   }
 }
 
+/**
+ * Adjunta Authorization cuando hay access token disponible.
+ */
 function attachAuthHeader(config: AxiosRequestConfig) {
   const token = getStoredAccessToken()
   if (token) {
@@ -72,6 +97,9 @@ function attachAuthHeader(config: AxiosRequestConfig) {
   return config
 }
 
+/**
+ * Configura instancia de Axios con manejo automático de expiración (401 -> refresh).
+ */
 function createHttpClient(): AxiosInstance {
   const instance = axios.create({
     baseURL: API_URL,
