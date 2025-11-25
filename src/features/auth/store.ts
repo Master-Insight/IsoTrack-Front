@@ -14,6 +14,7 @@ type AuthState = {
   clear: () => void
 }
 
+// Fuente única de verdad para el estado de autenticación dentro de la app.
 export const useAuthStore = create<AuthState>((set) => ({
   status: 'locked',
   profile: null,

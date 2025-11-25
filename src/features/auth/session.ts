@@ -6,6 +6,21 @@ export const PROFILE_STORAGE_KEY = 'profile'
 
 const isBrowser = typeof window !== 'undefined'
 
+function mapStoredProfile(profile: UserProfile) {
+  return {
+    id: profile.id,
+    email: profile.email,
+    role: profile.role,
+    fullName: profile.full_name,
+    companyId: profile.company_id,
+    createdAt: profile.created_at,
+  }
+}
+
+/**
+ * Intenta hidratar el store global usando el perfil guardado en sessionStorage.
+ * Devuelve true cuando logra cargar el perfil y marcar la sesión como lista.
+ */
 export function hydrateProfileFromStorage() {
   if (!isBrowser) return false
 
@@ -17,14 +32,7 @@ export function hydrateProfileFromStorage() {
     const { setStatus, setProfile } = useAuthStore.getState()
 
     setStatus('ready')
-    setProfile({
-      id: parsedProfile.id,
-      email: parsedProfile.email,
-      role: parsedProfile.role,
-      fullName: parsedProfile.full_name,
-      companyId: parsedProfile.company_id,
-      createdAt: parsedProfile.created_at,
-    })
+    setProfile(mapStoredProfile(parsedProfile))
 
     return true
   } catch (error) {
@@ -33,6 +41,10 @@ export function hydrateProfileFromStorage() {
   }
 }
 
+/**
+ * Marca la sesión como disponible cuando existe un access token guardado.
+ * Útil para SSR o recarga de página sin duplicar llamadas al backend.
+ */
 function hydrateTokens() {
   if (!isBrowser) return false
 
@@ -45,10 +57,16 @@ function hydrateTokens() {
   return true
 }
 
+/**
+ * Restaura sesión ya sea desde perfil serializado o tokens previos.
+ */
 export function restoreSessionFromStorage() {
   return hydrateProfileFromStorage() || hydrateTokens()
 }
 
+/**
+ * Verifica si hay sesión disponible, intentando hidratar en caliente si es necesario.
+ */
 export function hasAvailableSession() {
   if (!isBrowser) return false
 
