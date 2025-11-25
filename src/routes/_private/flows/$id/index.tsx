@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { PrivateLayout } from '@/components/layouts/PrivateLayout'
 import { FlowDetail } from '@/features/flows/FlowDetail'
 
-export const Route = createFileRoute('/_private/flows/$id')({
+export const Route = createFileRoute('/_private/flows/$id/')({
   component: FlowDetailPage,
 })
 

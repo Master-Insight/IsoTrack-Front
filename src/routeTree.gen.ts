@@ -19,7 +19,8 @@ import { Route as PrivateDocumentsRouteImport } from './routes/_private/document
 import { Route as PrivateDiagramsRouteImport } from './routes/_private/diagrams'
 import { Route as PrivateDashboardRouteImport } from './routes/_private/dashboard'
 import { Route as PrivateFlowsIndexRouteImport } from './routes/_private/flows/index'
-import { Route as PrivateFlowsIdRouteImport } from './routes/_private/flows/$id'
+import { Route as PrivateFlowsIdIndexRouteImport } from './routes/_private/flows/$id/index'
+import { Route as PrivateFlowsIdEditorRouteImport } from './routes/_private/flows/$id/editor'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -69,9 +70,14 @@ const PrivateFlowsIndexRoute = PrivateFlowsIndexRouteImport.update({
   path: '/flows/',
   getParentRoute: () => PrivateRoute,
 } as any)
-const PrivateFlowsIdRoute = PrivateFlowsIdRouteImport.update({
-  id: '/flows/$id',
-  path: '/flows/$id',
+const PrivateFlowsIdIndexRoute = PrivateFlowsIdIndexRouteImport.update({
+  id: '/flows/$id/',
+  path: '/flows/$id/',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateFlowsIdEditorRoute = PrivateFlowsIdEditorRouteImport.update({
+  id: '/flows/$id/editor',
+  path: '/flows/$id/editor',
   getParentRoute: () => PrivateRoute,
 } as any)
 
@@ -83,8 +89,9 @@ export interface FileRoutesByFullPath {
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
   '/': typeof PublicIndexRoute
-  '/flows/$id': typeof PrivateFlowsIdRoute
   '/flows': typeof PrivateFlowsIndexRoute
+  '/flows/$id/editor': typeof PrivateFlowsIdEditorRoute
+  '/flows/$id': typeof PrivateFlowsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof PrivateDashboardRoute
@@ -94,8 +101,9 @@ export interface FileRoutesByTo {
   '/user': typeof PrivateUserRoute
   '/login': typeof PublicLoginRoute
   '/': typeof PublicIndexRoute
-  '/flows/$id': typeof PrivateFlowsIdRoute
   '/flows': typeof PrivateFlowsIndexRoute
+  '/flows/$id/editor': typeof PrivateFlowsIdEditorRoute
+  '/flows/$id': typeof PrivateFlowsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,8 +116,9 @@ export interface FileRoutesById {
   '/_private/user': typeof PrivateUserRoute
   '/_public/login': typeof PublicLoginRoute
   '/_public/': typeof PublicIndexRoute
-  '/_private/flows/$id': typeof PrivateFlowsIdRoute
   '/_private/flows/': typeof PrivateFlowsIndexRoute
+  '/_private/flows/$id/editor': typeof PrivateFlowsIdEditorRoute
+  '/_private/flows/$id/': typeof PrivateFlowsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,8 +130,9 @@ export interface FileRouteTypes {
     | '/user'
     | '/login'
     | '/'
-    | '/flows/$id'
     | '/flows'
+    | '/flows/$id/editor'
+    | '/flows/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
@@ -132,8 +142,9 @@ export interface FileRouteTypes {
     | '/user'
     | '/login'
     | '/'
-    | '/flows/$id'
     | '/flows'
+    | '/flows/$id/editor'
+    | '/flows/$id'
   id:
     | '__root__'
     | '/_private'
@@ -145,8 +156,9 @@ export interface FileRouteTypes {
     | '/_private/user'
     | '/_public/login'
     | '/_public/'
-    | '/_private/flows/$id'
     | '/_private/flows/'
+    | '/_private/flows/$id/editor'
+    | '/_private/flows/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,11 +238,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateFlowsIndexRouteImport
       parentRoute: typeof PrivateRoute
     }
-    '/_private/flows/$id': {
-      id: '/_private/flows/$id'
+    '/_private/flows/$id/': {
+      id: '/_private/flows/$id/'
       path: '/flows/$id'
       fullPath: '/flows/$id'
-      preLoaderRoute: typeof PrivateFlowsIdRouteImport
+      preLoaderRoute: typeof PrivateFlowsIdIndexRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/flows/$id/editor': {
+      id: '/_private/flows/$id/editor'
+      path: '/flows/$id/editor'
+      fullPath: '/flows/$id/editor'
+      preLoaderRoute: typeof PrivateFlowsIdEditorRouteImport
       parentRoute: typeof PrivateRoute
     }
   }
@@ -242,8 +261,9 @@ interface PrivateRouteChildren {
   PrivateDocumentsRoute: typeof PrivateDocumentsRoute
   PrivateProcessesRoute: typeof PrivateProcessesRoute
   PrivateUserRoute: typeof PrivateUserRoute
-  PrivateFlowsIdRoute: typeof PrivateFlowsIdRoute
   PrivateFlowsIndexRoute: typeof PrivateFlowsIndexRoute
+  PrivateFlowsIdEditorRoute: typeof PrivateFlowsIdEditorRoute
+  PrivateFlowsIdIndexRoute: typeof PrivateFlowsIdIndexRoute
 }
 
 const PrivateRouteChildren: PrivateRouteChildren = {
@@ -252,8 +272,9 @@ const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateDocumentsRoute: PrivateDocumentsRoute,
   PrivateProcessesRoute: PrivateProcessesRoute,
   PrivateUserRoute: PrivateUserRoute,
-  PrivateFlowsIdRoute: PrivateFlowsIdRoute,
   PrivateFlowsIndexRoute: PrivateFlowsIndexRoute,
+  PrivateFlowsIdEditorRoute: PrivateFlowsIdEditorRoute,
+  PrivateFlowsIdIndexRoute: PrivateFlowsIdIndexRoute,
 }
 
 const PrivateRouteWithChildren =
