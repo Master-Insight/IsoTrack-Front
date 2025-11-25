@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* -- IsoTrack brand palette for Tailwind v4 (configless) -- */
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1e40af;
+
+  --color-accent: #22d3ee;
+  --color-accent-light: #38e0f2;
+  --color-accent-dark: #0ea5e9;
+
+  --color-ink: #0f172a;
+  --color-ink-light: #1e293b;
+  --color-ink-dark: #e2e8f0;
+
+  --color-paper: #ffffff;
+  --color-paper-dark: #0b1220;
+}
+
+body {
+  @apply m-0 bg-paper text-ink;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+/* --- ISO TRACK Brand Context --- */
+@layer utilities {
+  .isotrack {
+    @apply text-ink fill-ink;
+  }
+
+  .isotrack-dark {
+    @apply text-paper fill-paper;
+  }
+
+  .isotrack-accent {
+    @apply text-accent fill-accent;
+  }
+
+  .isotrack-primary {
+    @apply text-primary fill-primary;
+  }
+}
+
+@layer components {
+  .card-surface {
+    @apply rounded-2xl bg-paper shadow-sm ring-1 ring-slate-100;
+  }
+
+  .badge {
+    @apply rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary/20 transition hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:bg-primary/60;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:border-accent hover:text-ink;
+  }
+
+  .form-label {
+    @apply text-sm font-semibold text-ink;
+  }
+
+  .form-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink shadow-sm transition placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+}
