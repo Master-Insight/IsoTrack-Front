@@ -7,6 +7,7 @@ import type { DocumentRecord } from './types'
 
 const DOCUMENTS_QUERY_KEY = 'documents'
 
+// Consulta principal del listado de documentos, con semilla para entornos sin API.
 export function useDocumentsQuery(endpoint?: string) {
   const targetEndpoint = endpoint || `${API_URL}/documents`
 
@@ -19,6 +20,7 @@ export function useDocumentsQuery(endpoint?: string) {
   })
 }
 
+// Consulta individual de detalle; deshabilitada hasta tener un id definido.
 export function useDocumentDetailQuery(documentId?: string, baseEndpoint?: string) {
   const targetEndpoint = documentId
     ? `${baseEndpoint || `${API_URL}/documents`}/${documentId}`

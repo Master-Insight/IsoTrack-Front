@@ -18,6 +18,7 @@ type DocumentRowProps = {
   onSelect: (id: string) => void
 }
 
+// Fila clickeable para listar documentos en el panel izquierdo.
 function DocumentRow({ id, title, code, status, active, isSelected, onSelect }: DocumentRowProps) {
   return (
     <button
@@ -50,6 +51,7 @@ function DocumentRow({ id, title, code, status, active, isSelected, onSelect }: 
   )
 }
 
+// Detalle resumido del documento seleccionado; funciona con datos de red o semilla.
 function DocumentDetail({ selectedDocument }: { selectedDocument: DocumentRecord | null }) {
   if (!selectedDocument) {
     return (
@@ -141,23 +143,27 @@ function DocumentDetail({ selectedDocument }: { selectedDocument: DocumentRecord
   )
 }
 
+// Panel maestro-detalle que combina listado y consulta de detalle de documento.
 export function DocumentsPanel({ endpoint }: { endpoint?: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const documentsQuery = useDocumentsQuery(endpoint)
   const detailQuery = useDocumentDetailQuery(selectedId || undefined, endpoint)
 
+  const documents = documentsQuery.data || []
+
   useEffect(() => {
-    if (!selectedId && documentsQuery.data?.length) {
-      setSelectedId(documentsQuery.data[0]?.id)
+    if (!selectedId && documents.length) {
+      setSelectedId(documents[0]?.id)
     }
-  }, [documentsQuery.data, selectedId])
+  }, [documents, selectedId])
 
   const selectedDocument = useMemo<DocumentRecord | null>(() => {
     if (detailQuery.data) return detailQuery.data
-    if (!documentsQuery.data || documentsQuery.data.length === 0) return null
-    const fallbackId = selectedId || documentsQuery.data[0]?.id
-    return documentsQuery.data.find((doc) => doc.id === fallbackId) || null
-  }, [detailQuery.data, documentsQuery.data, selectedId])
+    if (!documents.length) return null
+
+    const fallbackId = selectedId || documents[0]?.id
+    return documents.find((doc) => doc.id === fallbackId) || null
+  }, [detailQuery.data, documents, selectedId])
 
   const isLoadingList = documentsQuery.isLoading
   const isSyncing = documentsQuery.isFetching || detailQuery.isFetching
