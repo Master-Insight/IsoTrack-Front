@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   Background,
   Controls,
+  Handle,
   MiniMap,
   Position,
   ReactFlow,
@@ -434,6 +435,26 @@ function FlowNodeCard({
         selected ? 'ring-2 ring-indigo-500' : 'ring-0'
       }`}
     >
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          width: 14,
+          height: 14,
+          border: '2px solid #cbd5e1',
+          background: '#fff',
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          width: 14,
+          height: 14,
+          border: `2px solid ${typeConfig.color}55`,
+          background: '#fff',
+        }}
+      />
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
