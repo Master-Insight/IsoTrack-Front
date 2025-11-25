@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { API_URL } from '@/config/constants'
-import { getMockFlowById } from '@/mocks/mockFlows'
 
 import { fetchFlowById, fetchFlows } from './api'
 import type { FlowDetailRecord } from './types'
@@ -27,26 +26,6 @@ export function useFlowDetailQuery(flowId: string) {
     queryKey: [FLOW_DETAIL_QUERY_KEY, flowId],
     queryFn: () => fetchFlowById(endpoint),
     select: (response) => response.data as FlowDetailRecord,
-    enabled: Boolean(flowId),
-    staleTime: 1000 * 60,
-  })
-}
-
-export function useFlowViewQuery(flowId: string) {
-  const endpoint = `${API_URL}/flows/${flowId}`
-
-  return useQuery({
-    queryKey: [FLOW_DETAIL_QUERY_KEY, 'view', flowId],
-    queryFn: async () => {
-      try {
-        const response = await fetchFlowById(endpoint)
-        return response.data as FlowDetailRecord
-      } catch (error) {
-        const mockFlow = getMockFlowById(flowId)
-        if (!mockFlow) throw error
-        return mockFlow
-      }
-    },
     enabled: Boolean(flowId),
     staleTime: 1000 * 60,
   })
