@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { PrivateLayout } from '@/components/layouts/PrivateLayout'
 import { HeroSection } from '@/features/dashboard/HeroSection'
-import { ProcessesPanel } from '@/features/processes/components/ProcessesPanel'
+import { ProcessesShowcase } from '@/features/processes/components'
 
 export const Route = createFileRoute('/_private/processes')({
   component: ProcessesView,
@@ -16,7 +16,7 @@ function ProcessesView() {
     >
       <div className="space-y-6">
         <HeroSection />
-        <ProcessesPanel />
+        <ProcessesShowcase />
       </div>
     </PrivateLayout>
   )
