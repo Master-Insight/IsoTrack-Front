@@ -1,4 +1,8 @@
-import axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import axios, {
+  type AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+} from 'axios'
 
 import { API_URL } from '../config/constants'
 
@@ -62,23 +66,30 @@ export function clearSessionTokens() {
  * Lanza un Error con mensaje de usuario en caso de no poder renovarlo.
  */
 export async function refreshToken() {
-  const refresh = getStoredRefreshToken()
-  if (!refresh) {
+  const refresh_token = getStoredRefreshToken()
+  if (!refresh_token) {
     if (isBrowser) alert('No se encontró refresh token para renovar la sesión')
     throw new Error('Refresh token no disponible')
   }
 
   try {
-    const { data } = await axios.post<{ accessToken: string }>(`${API_URL}/users/refresh`, { refresh }, {
-      withCredentials: true,
-    })
+    const { data } = await axios.post<{ accessToken: string }>(
+      `${API_URL}/users/refresh`,
+      { refresh_token },
+      {
+        withCredentials: true,
+      },
+    )
     setAccessToken(data.accessToken)
     return data.accessToken
   } catch (error) {
     if (isBrowser) {
-      alert('No se pudo refrescar la sesión. Por favor, inicia sesión nuevamente.')
+      alert(
+        'No se pudo refrescar la sesión. Por favor, inicia sesión nuevamente.',
+      )
     }
-    const message = error instanceof Error ? error.message : 'No se pudo refrescar el token'
+    const message =
+      error instanceof Error ? error.message : 'No se pudo refrescar el token'
     throw new Error(message)
   }
 }
@@ -117,7 +128,11 @@ function createHttpClient(): AxiosInstance {
       const axiosError = error as AxiosError
       const originalRequest = axiosError.config
 
-      if (axiosError.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
+      if (
+        axiosError.response?.status === 401 &&
+        originalRequest &&
+        !(originalRequest as any)._retry
+      ) {
         ;(originalRequest as any)._retry = true
         try {
           const newToken = await refreshToken()
