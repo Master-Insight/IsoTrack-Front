@@ -41,23 +41,17 @@ import type {
 } from './types'
 import { useFlowDetailQuery } from './queries'
 
+import { useFlowNodes, type FlowNodeData } from './hooks/useFlowNodes'
+import { useFlowLayout } from './hooks/useFlowLayout'
+import { useFlowInteraction } from './stores/flowInteractionStore'
+
 const badgeClass = 'badge px-3 py-1 rounded-full text-xs font-semibold'
+
 const DEFAULT_NODE_WIDTH = 240
 const DEFAULT_NODE_HEIGHT = 80
 
 type FlowDetailProps = {
   flowId: string
-}
-
-type FlowNodeData = {
-  id: string
-  label: string
-  type: FlowNodeRecord['type']
-  system: string
-  metadata?: FlowNodeMetadata | null
-  code?: string
-  width?: number | null
-  height?: number | null
 }
 
 type FlowViewPanelProps = {
@@ -85,130 +79,49 @@ const edgeVariants: Record<
 }
 
 export function FlowDetail({ flowId }: FlowDetailProps) {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
   const [viewport, setViewport] = useState<Viewport | null>(null)
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null)
 
   const { data: flow, isLoading, error } = useFlowDetailQuery(flowId)
 
+  // ✅ Usar stores para estado de interacción
+  const hoveredNodeId = useFlowInteraction((state) => state.hoveredNodeId)
+  const selectedNodeId = useFlowInteraction((state) => state.selectedNodeId)
+  const setHoveredNode = useFlowInteraction((state) => state.setHoveredNode)
+  const setSelectedNode = useFlowInteraction((state) => state.setSelectedNode)
+
+  // ✅ Separar lógica de nodos
+  const baseNodes = useFlowNodes(flow)
+
+  // ✅ Aplicar layout solo cuando sea necesario
   const shouldAutoLayout = useMemo(
     () => (flow?.layout_mode ?? 'manual') === 'auto',
     [flow?.layout_mode],
   )
 
-  const dagreGraph = useMemo(() => {
-    if (!shouldAutoLayout || !flow?.nodes?.length) return null
+  const layoutedNodes = useFlowLayout(
+    baseNodes,
+    flow?.edges ?? [],
+    shouldAutoLayout ? 'auto' : 'manual',
+  )
 
-    const graph = new dagre.graphlib.Graph()
-    graph.setDefaultEdgeLabel(() => ({}))
-    graph.setGraph({
-      rankdir: 'TB',
-      nodesep: 120,
-      ranksep: 160,
-      marginx: 40,
-      marginy: 40,
-    })
-
-    flow.nodes.forEach((node) => {
-      graph.setNode(node.id, {
-        width: node.width ?? DEFAULT_NODE_WIDTH,
-        height: node.height ?? DEFAULT_NODE_HEIGHT,
-      })
-    })
-
-    flow.edges
-      ?.filter((edge) => edge.source_node && edge.target_node)
-      .forEach((edge) => {
-        graph.setEdge(edge.source_node as string, edge.target_node as string)
-      })
-
-    dagre.layout(graph)
-    return graph
-  }, [flow?.edges, flow?.nodes, shouldAutoLayout])
-
-  useEffect(() => {
-    if (!flow) return
-    console.log('detalle flujo', flow)
-  }, [flow])
-
-  useEffect(() => {
-    if (!flow?.nodes?.length) return
-    setSelectedNodeId((current) => current || flow.nodes[0]?.id || null)
-  }, [flow?.nodes])
-
-  useEffect(() => {
-    if (!reactFlowInstance) return
-    if (viewport) {
-      reactFlowInstance.setViewport(viewport)
-      return
-    }
-    reactFlowInstance.fitView({ padding: 0.2 })
-  }, [reactFlowInstance, viewport])
-
-  const handleResetView = () => {
-    if (!reactFlowInstance) return
-    reactFlowInstance.fitView({ padding: 0.2 })
-  }
-
-  const reactFlowNodes: Node<FlowNodeData>[] = useMemo(() => {
-    if (!flow?.nodes) return []
-
-    return flow.nodes.map((node, index) => {
-      const typeConfig = nodeTypeStyles[node.type] || nodeTypeStyles.step
-      const width = node.width ?? DEFAULT_NODE_WIDTH
-      const height = node.height ?? DEFAULT_NODE_HEIGHT
-      let position = node.position || null
-
-      if (shouldAutoLayout && dagreGraph) {
-        const dagreNode = dagreGraph.node(node.id)
-        position = {
-          x: (dagreNode?.x ?? 0) - width / 2,
-          y: (dagreNode?.y ?? 0) - height / 2,
-        }
-      }
-
-      if (!position) {
-        position = {
-          x: (index % 3) * 260,
-          y: Math.floor(index / 3) * 180,
-        }
-      }
-
+  // ✅ Aplicar estilos de hover/dim solo en el render final
+  const reactFlowNodes = useMemo(() => {
+    return layoutedNodes.map((node) => {
       const isDimmed = hoveredNodeId && hoveredNodeId !== node.id
-
       return {
-        id: node.id,
-        type: 'flowNode',
-        position,
-        width,
-        height,
-        selectable: true,
-        draggable: false,
-        data: {
-          id: node.id,
-          label: node.label,
-          type: node.type,
-          system: node.system,
-          metadata: node.metadata,
-          code: node.code,
-          width,
-          height,
-        },
+        ...node,
         style: {
-          border: `1px solid ${typeConfig.color}22`,
+          ...node.style,
+          opacity: isDimmed ? 0.6 : 1,
           boxShadow: isDimmed
             ? '0 6px 20px rgba(0,0,0,0.04)'
             : '0 12px 40px rgba(0,0,0,0.1)',
-          opacity: isDimmed ? 0.6 : 1,
-          transition: 'box-shadow 200ms ease, opacity 200ms ease',
-          background: '#fff',
-          borderRadius: 16,
         },
       }
     })
-  }, [flow?.nodes, hoveredNodeId, dagreGraph, shouldAutoLayout])
+  }, [layoutedNodes, hoveredNodeId])
 
   const reactFlowEdges: Edge[] = useMemo(() => {
     if (!flow?.edges) return []
@@ -256,6 +169,60 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
     () => flow?.nodes.find((node) => node.id === selectedNodeId),
     [flow?.nodes, selectedNodeId],
   )
+
+  useEffect(() => {
+    if (!flow) return
+    console.log('detalle flujo', flow)
+  }, [flow])
+
+  useEffect(() => {
+    if (!flow?.nodes?.length) return
+    setSelectedNode(flow.nodes[0]?.id || null)
+  }, [flow?.nodes, setSelectedNode])
+
+  useEffect(() => {
+    if (!reactFlowInstance) return
+    if (viewport) {
+      reactFlowInstance.setViewport(viewport)
+      return
+    }
+    reactFlowInstance.fitView({ padding: 0.2 })
+  }, [reactFlowInstance, viewport])
+
+  const dagreGraph = useMemo(() => {
+    if (!shouldAutoLayout || !flow?.nodes?.length) return null
+
+    const graph = new dagre.graphlib.Graph()
+    graph.setDefaultEdgeLabel(() => ({}))
+    graph.setGraph({
+      rankdir: 'TB',
+      nodesep: 120,
+      ranksep: 160,
+      marginx: 40,
+      marginy: 40,
+    })
+
+    flow.nodes.forEach((node) => {
+      graph.setNode(node.id, {
+        width: node.width ?? DEFAULT_NODE_WIDTH,
+        height: node.height ?? DEFAULT_NODE_HEIGHT,
+      })
+    })
+
+    flow.edges
+      ?.filter((edge) => edge.source_node && edge.target_node)
+      .forEach((edge) => {
+        graph.setEdge(edge.source_node as string, edge.target_node as string)
+      })
+
+    dagre.layout(graph)
+    return graph
+  }, [flow?.edges, flow?.nodes, shouldAutoLayout])
+
+  const handleResetView = () => {
+    if (!reactFlowInstance) return
+    reactFlowInstance.fitView({ padding: 0.2 })
+  }
 
   if (error) {
     return (
@@ -352,9 +319,9 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
                   nodeTypes={{ flowNode: FlowNodeCard }}
                   nodes={reactFlowNodes}
                   edges={reactFlowEdges}
-                  onNodeClick={(_, node) => setSelectedNodeId(node.id)}
-                  onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
-                  onNodeMouseLeave={() => setHoveredNodeId(null)}
+                  onNodeClick={(_, node) => setSelectedNode(node.id)}
+                  onNodeMouseEnter={(_, node) => setHoveredNode(node.id)}
+                  onNodeMouseLeave={() => setHoveredNode(null)}
                   nodesDraggable={false}
                   nodesConnectable={false}
                   elevateNodesOnSelect
@@ -383,6 +350,87 @@ export function FlowDetail({ flowId }: FlowDetailProps) {
   )
 }
 
+// ✅ Optimizar FlowNodeCard para usar selector específico
+function FlowNodeCard({
+  data,
+  selected,
+}: {
+  data: FlowNodeData
+  selected?: boolean
+}) {
+  // ✅ Solo suscribirse al hover si es necesario
+  const hoveredNodeId = useFlowInteraction((state) => state.hoveredNodeId)
+  const isDimmed = hoveredNodeId && hoveredNodeId !== data.id
+
+  const typeConfig = nodeTypeStyles[data.type] || nodeTypeStyles.step
+  const Icon = typeConfig.icon
+
+  return (
+    <div
+      className={`relative w-full rounded-2xl border border-slate-100 px-4 py-3 shadow-sm transition ${
+        selected ? 'ring-2 ring-indigo-500' : 'ring-0'
+      }`}
+      style={{
+        opacity: isDimmed ? 0.6 : 1,
+        transition: 'opacity 200ms ease',
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          width: 14,
+          height: 14,
+          border: '2px solid #cbd5e1',
+          background: '#fff',
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          width: 14,
+          height: 14,
+          border: `2px solid ${typeConfig.color}55`,
+          background: '#fff',
+        }}
+      />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${typeConfig.color}15` }}
+          >
+            <Icon className="h-4 w-4" style={{ color: typeConfig.color }} />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">{data.label}</p>
+            <p className="text-[11px] text-slate-500">{data.system}</p>
+          </div>
+        </div>
+        {data.code ? (
+          <span className="rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold text-white">
+            {data.code}
+          </span>
+        ) : null}
+      </div>
+      {data.metadata?.artifacts?.length ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
+          {data.metadata.artifacts.map((artifact) => (
+            <span
+              key={artifact}
+              className={`${badgeClass} bg-indigo-50 text-indigo-700`}
+            >
+              {artifact}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+// Resto de componentes sin cambios...
 function FlowViewPanel({ flow, selectedNode }: FlowViewPanelProps) {
   const metadata = selectedNode?.metadata
 
@@ -473,77 +521,6 @@ function FlowViewPanel({ flow, selectedNode }: FlowViewPanelProps) {
         </Link>
       </div>
     </aside>
-  )
-}
-
-function FlowNodeCard({
-  data,
-  selected,
-}: {
-  data: FlowNodeData
-  selected?: boolean
-}) {
-  const typeConfig = nodeTypeStyles[data.type] || nodeTypeStyles.step
-  const Icon = typeConfig.icon
-
-  return (
-    <div
-      className={`relative w-full rounded-2xl border border-slate-100 px-4 py-3 shadow-sm transition ${
-        selected ? 'ring-2 ring-indigo-500' : 'ring-0'
-      }`}
-    >
-      <Handle
-        type="target"
-        position={Position.Left}
-        style={{
-          width: 14,
-          height: 14,
-          border: '2px solid #cbd5e1',
-          background: '#fff',
-        }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        style={{
-          width: 14,
-          height: 14,
-          border: `2px solid ${typeConfig.color}55`,
-          background: '#fff',
-        }}
-      />
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${typeConfig.color}15` }}
-          >
-            <Icon className="h-4 w-4" style={{ color: typeConfig.color }} />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-slate-900">{data.label}</p>
-            <p className="text-[11px] text-slate-500">{data.system}</p>
-          </div>
-        </div>
-        {data.code ? (
-          <span className="rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold text-white">
-            {data.code}
-          </span>
-        ) : null}
-      </div>
-      {data.metadata?.artifacts?.length ? (
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
-          {data.metadata.artifacts.map((artifact) => (
-            <span
-              key={artifact}
-              className={`${badgeClass} bg-indigo-50 text-indigo-700`}
-            >
-              {artifact}
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </div>
   )
 }
 
