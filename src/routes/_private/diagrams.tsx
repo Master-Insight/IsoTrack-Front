@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { PrivateLayout } from '@/components/layouts/PrivateLayout'
-import { DiagramsPanel } from '@/features/diagrams/components/DiagramsPanel'
+import { DiagramsPage } from '@/features/diagrams/DiagramsPage'
 import { HeroSection } from '@/features/dashboard/HeroSection'
 
 export const Route = createFileRoute('/_private/diagrams')({
@@ -16,7 +16,7 @@ function DiagramsView() {
     >
       <div className="space-y-6">
         <HeroSection />
-        <DiagramsPanel />
+        <DiagramsPage />
       </div>
     </PrivateLayout>
   )
