@@ -752,22 +752,24 @@ function EditableNode({ data }: { data: EditorNodeData }) {
     >
       <Handle
         type="target"
-        position={Position.Left}
+        position={Position.Top}
         style={{
           width: 14,
           height: 14,
           border: '2px solid #cbd5e1',
           background: '#fff',
+          top: -7,
         }}
       />
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Bottom}
         style={{
           width: 14,
           height: 14,
           border: `2px solid ${config.color}55`,
           background: '#fff',
+          bottom: -7,
         }}
       />
       <div className="flex items-center justify-between gap-2">

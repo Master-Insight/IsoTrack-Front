@@ -386,22 +386,24 @@ function FlowNodeCard({
       {/* Handles de conexión */}
       <Handle
         type="target"
-        position={Position.Left}
+        position={Position.Top}
         style={{
           width: HANDLE_CONFIG.SIZE,
           height: HANDLE_CONFIG.SIZE,
           border: `${HANDLE_CONFIG.BORDER_WIDTH}px solid ${HANDLE_CONFIG.BORDER_COLOR}`,
           background: HANDLE_CONFIG.BACKGROUND,
+          top: -7, // Centrado en el borde superior
         }}
       />
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Bottom}
         style={{
           width: HANDLE_CONFIG.SIZE,
           height: HANDLE_CONFIG.SIZE,
           border: `${HANDLE_CONFIG.BORDER_WIDTH}px solid ${typeConfig.color}55`,
           background: HANDLE_CONFIG.BACKGROUND,
+          bottom: -7, // Centrado en el borde inferior
         }}
       />
 
