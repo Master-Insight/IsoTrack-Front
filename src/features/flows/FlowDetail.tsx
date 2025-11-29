@@ -19,7 +19,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   type Edge,
-  type Node,
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
@@ -27,7 +26,6 @@ import '@xyflow/react/dist/style.css'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowLeftRight,
-  CheckCircle2,
   Compass,
   FileText,
   Gauge,
@@ -35,7 +33,6 @@ import {
   TimerReset,
   Users,
   Workflow,
-  XCircle,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -43,7 +40,6 @@ import type {
   FlowDetailRecord,
   FlowEdgeMetadata,
   FlowNodeRecord,
-  FlowTask,
 } from './types'
 import { useFlowDetailQuery } from './queries'
 import { useFlowNodes, type FlowNodeData } from './hooks/useFlowNodes'
@@ -51,11 +47,7 @@ import { useFlowLayout } from './hooks/useFlowLayout'
 import { useFlowInteraction } from './stores/flowInteractionStore'
 
 // ✅ Importar configuraciones centralizadas
-import {
-  getNodeTypeConfig,
-  getNodeTypeIcon,
-  NodeTypeChip,
-} from './config/flow-node-types'
+import { getNodeTypeConfig, NodeTypeChip } from './config/flow-node-types'
 import {
   BADGE_CLASS,
   getBadgeClass,
@@ -64,6 +56,7 @@ import {
   VIEWPORT_CONFIG,
   UI_MESSAGES,
 } from './config/flow-constants'
+import { InfoList, SectionHeader, TaskList } from './components'
 
 // ==========================================
 // 📝 TIPOS
@@ -496,10 +489,10 @@ function FlowViewPanel({ flow, selectedNode }: FlowViewPanelProps) {
 
       {/* Roles */}
       <section className="space-y-2">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <Users className="h-4 w-4 text-indigo-600" />
-          Roles y responsables
-        </div>
+        <SectionHeader
+          icon={<Users className="h-4 w-4" />}
+          title="Roles y responsables"
+        />
         <div className="flex flex-wrap gap-2 text-xs text-slate-700">
           {metadata?.roles?.length ? (
             metadata.roles.map((role) => (
@@ -537,104 +530,12 @@ function FlowViewPanel({ flow, selectedNode }: FlowViewPanelProps) {
         <Link
           to="/flows/$id/editor"
           params={{ id: flow?.id ?? '' }}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         >
           Ver en editor
           <ArrowLeftRight className="h-4 w-4" />
         </Link>
       </div>
     </aside>
-  )
-}
-
-// ==========================================
-// 🧩 COMPONENTES AUXILIARES
-// ==========================================
-
-function InfoList({
-  title,
-  items,
-  icon: Icon,
-  empty,
-}: {
-  title: string
-  items?: string[]
-  icon: LucideIcon
-  empty: string
-}) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <Icon className="h-4 w-4 text-indigo-600" />
-        {title}
-      </div>
-      {items?.length ? (
-        <div className="flex flex-wrap gap-2 text-xs text-slate-700">
-          {items.map((item) => (
-            <span
-              key={item}
-              className={`${BADGE_CLASS} bg-slate-100 text-slate-800`}
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-slate-500">{empty}</p>
-      )}
-    </section>
-  )
-}
-
-function TaskList({ tasks }: { tasks?: FlowTask[] }) {
-  if (!tasks?.length) {
-    return (
-      <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-600">
-        {UI_MESSAGES.NO_TASKS}
-      </section>
-    )
-  }
-
-  return (
-    <section className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-        Tareas y chips de estado
-      </div>
-      <ul className="space-y-2 text-xs">
-        {tasks.map((task) => (
-          <li
-            key={task.label}
-            className="flex items-center justify-between rounded-lg bg-white px-3 py-2 shadow-sm"
-          >
-            <span className="text-slate-700">{task.label}</span>
-            <TaskChip status={task.status} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function TaskChip({ status }: { status: FlowTask['status'] }) {
-  const statusConfig: Record<
-    FlowTask['status'],
-    { label: string; color: string; icon: LucideIcon }
-  > = {
-    pendiente: { label: 'Pendiente', color: '#f97316', icon: XCircle },
-    'en curso': { label: 'En curso', color: '#2563eb', icon: TimerReset },
-    completada: { label: 'Completada', color: '#16a34a', icon: CheckCircle2 },
-  }
-  const config = statusConfig[status]
-  const Icon = config.icon
-
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold"
-      style={{ backgroundColor: `${config.color}15`, color: config.color }}
-    >
-      <Icon className="h-3 w-3" />
-      {config.label}
-    </span>
   )
 }

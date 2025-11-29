@@ -18,6 +18,7 @@ import type { FlowRecord } from './types'
 
 // ✅ Importar configuraciones centralizadas
 import { getBadgeClass, UI_MESSAGES } from './config/flow-constants'
+import { DetailCard, FilterSelect, InfoBox } from './components'
 
 // ==========================================
 // 🔧 UTILIDADES
@@ -316,16 +317,13 @@ export function FlowsOverview() {
                 </div>
 
                 {/* INFO BOX */}
-                <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 px-4 py-5 text-sm text-slate-700">
-                  <p className="font-semibold text-slate-900">
-                    Visualización en ReactFlow
-                  </p>
-                  <p className="mt-1 text-slate-600">
-                    Usa el botón "Abrir Flujo" para cargar este flujo en una
+                <InfoBox
+                  variant="info"
+                  title="Visualización en ReactFlow"
+                  description='Usa el botón "Abrir Flujo" para cargar este flujo en una
                     hoja nueva con ReactFlow. Aquí mantenemos el resumen básico
-                    mientras conectamos el canvas visual.
-                  </p>
-                </div>
+                    mientras conectamos el canvas visual.'
+                />
               </div>
             ) : (
               <div className="flex h-full min-h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
@@ -336,61 +334,5 @@ export function FlowsOverview() {
         </section>
       )}
     </div>
-  )
-}
-
-// ==========================================
-// 🧩 COMPONENTES AUXILIARES
-// ==========================================
-
-type DetailCardProps = {
-  icon?: ReactNode
-  label: string
-  value: string
-}
-
-function DetailCard({ icon, label, value }: DetailCardProps) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3">
-      {icon && <div className="mt-0.5">{icon}</div>}
-      <div>
-        <p className="text-xs uppercase text-slate-500">{label}</p>
-        <p className="text-sm font-semibold text-slate-900">{value}</p>
-      </div>
-    </div>
-  )
-}
-
-type FilterSelectProps = {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
-  options: string[]
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  placeholder,
-  options,
-}: FilterSelectProps) {
-  return (
-    <label className="flex flex-col gap-1 text-sm text-slate-700">
-      <span className="font-semibold">{label}</span>
-      <select
-        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </label>
   )
 }
